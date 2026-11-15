@@ -1,1 +1,56 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Student Dashboard — KCDHANUNJAY INFOSYS</title><link rel="stylesheet" href="/access.css"></head><body><main class="shell"><section class="panel"><h1>Student Dashboard</h1><p id="welcome">Checking account…</p><p><a href="/">Home</a> · <a href="/my-payments.html">My payments</a></p><button id="logout">Logout</button></section></main><script>const t=localStorage.getItem('token');if(!t)location.replace('/login.html');else fetch('/api/auth/verify',{headers:{Authorization:'Bearer '+t}}).then(r=>{if(!r.ok)throw Error('Session expired');return r.json()}).then(d=>{document.getElementById('welcome').textContent='Welcome, '+d.user.name+' ('+d.user.username+')'}).catch(()=>location.replace('/login.html'));document.getElementById('logout').onclick=()=>{localStorage.removeItem('token');localStorage.removeItem('user');location.replace('/login.html')};</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Student Portal — KCDHANUNJAY INFOSYS</title>
+<link rel="stylesheet" href="/access.css">
+<style>
+:root{color-scheme:light}body{margin:0;min-height:100vh;background:linear-gradient(135deg,#078f9e,#12a7ad);font-family:system-ui,Arial,sans-serif;color:#fff}*{box-sizing:border-box}
+.portal{max-width:1150px;margin:auto;padding:24px 18px 65px}.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px}.brand{font-weight:800;font-size:clamp(18px,2.5vw,26px);color:#fff;text-decoration:none}.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.pill{border:1px solid #ffffff70;border-radius:100px;padding:7px 12px;font-size:13px}.logout{background:#fff;color:#075c69;border:0;border-radius:10px;padding:10px 17px;cursor:pointer;font-weight:700}.hero,.section{background:#ffffff20;border:1px solid #ffffff45;border-radius:20px;padding:clamp(18px,3vw,32px);box-shadow:0 12px 28px #00495824;backdrop-filter:blur(6px)}.hero h1{margin:0 0 8px;font-size:clamp(25px,4vw,37px)}.hero p{margin:6px 0}.muted{color:#e5fbff}.nav{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}.nav a,.tile{color:#fff;text-decoration:none}.nav a{padding:10px 13px;border:1px solid #ffffff70;border-radius:10px;background:#034f6580;font-weight:650;font-size:14px}.nav a:hover,.tile:hover{background:#ffffff33}.section{margin-top:22px}.section h2{margin:0 0 16px;font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.tile{display:block;padding:20px;border:1px solid #ffffff70;border-radius:14px;background:#07556b77;min-height:124px}.tile strong{display:block;font-size:18px;margin-bottom:10px}.tile span{font-size:14px;line-height:1.5;color:#e6f9fb}.status{padding:12px;border-radius:10px;background:#003e54a8;margin-top:15px}.hidden{display:none!important}a:focus-visible,button:focus-visible{outline:3px solid #ffe38c;outline-offset:3px}
+</style>
+</head>
+<body>
+<div class="portal" id="portal" hidden>
+<header class="top"><a class="brand" href="/">KCDHANUNJAY INFOSYS</a><div class="actions"><span class="pill">Student Portal</span><button class="logout" id="logout" type="button">Logout</button></div></header>
+<main>
+<section class="hero"><h1>Welcome, <span id="studentName">Student</span>!</h1><p class="muted">Explore your courses, projects and mock examinations from one place.</p><p><strong>Student ID:</strong> <span id="studentId">—</span></p><p id="studentEmail" class="muted"></p></section>
+<nav class="nav" aria-label="Student navigation"><a href="/#home">Home</a><a href="/#courses">Courses</a><a href="/#project-usp">Projects</a><a href="/#examMocksHeader">Mock Exams</a><a href="/my-payments.html">My Payments</a><a href="/#contact">Contact</a></nav>
+<section class="section"><h2>Your Learning Portal</h2><div class="grid">
+<a class="tile" href="/#home"><strong>🏠 Full Website</strong><span>Visit the complete KCDhanunjay Infosys website.</span></a>
+<a class="tile" href="/#courses"><strong>📚 Courses</strong><span>Browse available courses and learning materials.</span></a>
+<a class="tile" href="/#project-usp"><strong>💻 Projects</strong><span>Explore projects and practical training resources.</span></a>
+<a class="tile" href="/#examMocksHeader"><strong>📝 Mock Exams</strong><span>Choose an available mock exam. Paid exams require approval.</span></a>
+<a class="tile" href="/my-payments.html"><strong>💳 My Payments</strong><span>View your payment information and status.</span></a>
+<a class="tile" href="/#contact"><strong>✉️ Contact</strong><span>Reach the institute for help and support.</span></a>
+</div></section>
+<section class="section"><h2>Results & Rankings</h2><p>Exam results and rankings will appear through the existing exam result flow where available. A personal results history requires separate integration.</p></section>
+</main></div>
+<div id="checking" role="status" style="max-width:500px;margin:20vh auto;padding:24px;text-align:center">Checking your student session…</div>
+<script>
+(function(){
+'use strict';
+const token=localStorage.getItem('token');
+const checking=document.getElementById('checking');
+function goLogin(){localStorage.removeItem('token');localStorage.removeItem('user');location.replace('/login.html');}
+if(!token){goLogin();return;}
+document.getElementById('logout').addEventListener('click',goLogin);
+fetch('/api/auth/verify',{headers:{Authorization:'Bearer '+token},cache:'no-store'})
+.then(async r=>{if(!r.ok)throw new Error('Session invalid');return r.json();})
+.then(data=>{
+if(!data.success||!data.user)throw new Error('Invalid account');
+if(data.user.role!=='student'){
+checking.textContent='This portal is for students only. Redirecting to admin dashboard…';
+location.replace('/admin-dashboard.html');return;
+}
+const user=data.user;
+localStorage.setItem('user',JSON.stringify(user));
+document.getElementById('studentName').textContent=user.name||'Student';
+document.getElementById('studentId').textContent=user.username||'Not available';
+document.getElementById('studentEmail').textContent=user.email||'';
+document.getElementById('portal').hidden=false;
+checking.classList.add('hidden');
+})
+.catch(()=>goLogin());
+})();
+</script>
+</body></html>
