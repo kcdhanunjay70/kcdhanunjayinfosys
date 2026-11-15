@@ -37,6 +37,20 @@
     }
     .brand strong { font-size: 17px; }
     .brand span { color: #bae6fd; font-size: 13px; }
+    .candidate-identity {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 5px 12px;
+      max-width: 100%;
+      padding: 7px 12px;
+      border: 1px solid rgba(125, 211, 252, 0.35);
+      border-radius: 8px;
+      background: rgba(14, 116, 144, 0.22);
+      font-size: 13px;
+    }
+    .candidate-identity strong { color: #fff; overflow-wrap: anywhere; }
+    .candidate-identity .candidate-label { color: #bae6fd; }
     .status-row {
       display: flex;
       flex-wrap: wrap;
@@ -542,6 +556,10 @@
       <strong>KCDHANUNJAY INFOSYS</strong>
       <span>Free mock exam practice</span>
     </div>
+    <div class="candidate-identity" id="candidateIdentity" aria-live="polite">
+      <span class="candidate-label">Student:</span> <strong id="candidateNameTop">Loading...</strong>
+      <span class="candidate-label">Mobile:</span> <strong id="candidatePhoneTop">—</strong>
+    </div>
     <div class="status-row">
       <span class="pill" id="timer">--:--</span>
       <span class="pill" id="answeredPill">Answered 0/0</span>
@@ -687,6 +705,46 @@
       }
     }
 
+    // Show the signed-in student's identity in the top bar on EVERY exam.
+    // Authenticated identity is fetched from the server, not from editable URL fields.
+    function updateCandidateHeader() {
+      const details = currentStudentDetails();
+      el("candidateNameTop").textContent = details.name || "Not provided";
+      el("candidatePhoneTop").textContent = details.phone || "Not provided";
+    }
+
+    async function loadAuthenticatedCandidate() {
+      const token = examAuthToken();
+      if (!token) { updateCandidateHeader(); return; }
+      try {
+        const response = await fetch("/api/auth/verify", {
+          headers: { Authorization: `Bearer ${token}` }, cache: "no-store"
+        });
+        if (!response.ok) throw new Error("Session verification failed");
+        const data = await response.json();
+        const user = data.user;
+        if (!data.success || !user) throw new Error("Student profile unavailable");
+        el("studentName").value = user.name || "";
+        el("studentEmail").value = user.email || "";
+        el("studentPhone").value = user.phone || "";
+        // Prevent identity changes in authenticated exams; the server owns the identity.
+        ["studentName", "studentEmail", "studentPhone"].forEach(id => {
+          el(id).readOnly = true;
+          el(id).title = "Verified login profile";
+        });
+        updateCandidateHeader();
+        updateExamGate();
+      } catch (error) {
+        if (requestedAccess === "free" || requestedAccess === "paid") {
+          el("candidateNameTop").textContent = "Login required";
+          el("candidatePhoneTop").textContent = "—";
+          el("message").textContent = "Please log in again to verify your exam profile.";
+          throw error;
+        }
+        updateCandidateHeader();
+      }
+    }
+
     function currentStudentDetails() {
       return {
         name: String(el("studentName")?.value || "").trim(),
@@ -704,6 +762,7 @@
     }
 
     function updateExamGate() {
+      updateCandidateHeader();
       const ready = isValidStudentDetails(currentStudentDetails());
       examUnlocked = ready;
       document.querySelectorAll(".option, .jump").forEach((button) => {
@@ -1301,8 +1360,11 @@
     el("submitSide").addEventListener("click", () => submitExam());
     applyStudentDetails();
     bindStudentLeadAutosave();
-    saveStudentLeadFromExam();
     updateExamGate();
+    // For logged-in students, load verified name and mobile before starting the exam.
+    // For guest sample exams, display the name/mobile entered in the existing fields.
+    const candidateReady = loadAuthenticatedCandidate();
+    candidateReady.then(() => saveStudentLeadFromExam()).catch(() => {});
 
     document.addEventListener("visibilitychange", () => {
       if (document.hidden) recordProctorActivity("tab");
@@ -1324,7 +1386,7 @@
       if (!document.fullscreenElement) recordProctorActivity("fullscreen");
     });
 
-    loadExam().catch((err) => {
+    candidateReady.then(() => loadExam()).catch((err) => {
       el("examTitle").textContent = "Mock exam unavailable";
       el("examMeta").textContent = "Please go back and choose the exam again.";
       el("message").textContent = err.message;
