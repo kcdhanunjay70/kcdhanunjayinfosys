@@ -80,7 +80,7 @@ app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
  if(!questions.length)return err(res,404,'This exam has no questions');
  res.json({success:true,...examPublic(exam),actualType:exam.type,questions:questions.map(({id,question,options})=>({id,question,options,optionLabels:['A','B','C','D'],...(exam.id===LEGACY_FREE_EXAM_ID?(ARE_TRANSLATIONS[question]||{}):{})}))});
 }));
-app.post('/api/exam/session',auth,asyncRoute(async(req,res)=>{const examId=clean(req.body.examId);const exam=await c('exams').findOne({id:examId});if(!exam)return err(res,404,'Exam not found');if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,req.body.examType||exam.type,req.body.mock||exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true});let s=await c('sessions').findOne({user_id:uid(req.user),exam_id:examId,status:'active',expires_at:{$gt:new Date()}});if(!s){s={id:id(),user_id:uid(req.user),exam_id:examId,answers:{},answer_revision:0,status:'active',created_at:new Date(),expires_at:new Date(Date.now()+exam.duration*60000)};await c('sessions').insertOne(s);}res.json({success:true,attemptId:s.id,expiresAt:iso(s.expires_at),answers:s.answers,answerRevision:s.answer_revision||0});}));
+app.post('/api/exam/session',auth,asyncRoute(async(req,res)=>{const examId=clean(req.body.examId);const exam=await c('exams').findOne({id:examId});if(!exam)return err(res,404,'Exam not found');if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,exam.type,exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true});let s=await c('sessions').findOne({user_id:uid(req.user),exam_id:examId,status:'active',expires_at:{$gt:new Date()}});if(!s){s={id:id(),user_id:uid(req.user),exam_id:examId,answers:{},answer_revision:0,status:'active',created_at:new Date(),expires_at:new Date(Date.now()+exam.duration*60000)};await c('sessions').insertOne(s);}res.json({success:true,attemptId:s.id,expiresAt:iso(s.expires_at),answers:s.answers,answerRevision:s.answer_revision||0});}));
 app.put('/api/exam/session/:id/answers',auth,asyncRoute(async(req,res)=>{
  const s=await c('sessions').findOne({id:req.params.id,user_id:uid(req.user),status:'active'});
  if(!s||s.expires_at<=new Date())return err(res,409,'Session expired or unavailable');
@@ -93,7 +93,7 @@ app.put('/api/exam/session/:id/answers',auth,asyncRoute(async(req,res)=>{
  if(!updated.modifiedCount){const latest=await c('sessions').findOne({id:s.id,user_id:uid(req.user)});if(!latest||latest.status!=='active'||latest.expires_at<=new Date())return err(res,409,'Session expired or unavailable');return res.json({success:true,stale:true,answerRevision:latest.answer_revision||0});}
  res.json({success:true,answerRevision:revision});
 }));
-app.post('/api/exam/session/:id/finish',auth,asyncRoute(async(req,res)=>{await c('sessions').updateOne({id:req.params.id,user_id:uid(req.user),status:'active'},{$set:{status:'finished'}});res.json({success:true});}));
+app.post('/api/exam/session/:id/finish',auth,asyncRoute(async(req,res)=>{const session=await c('sessions').findOne({id:req.params.id,user_id:uid(req.user)});if(!session)return err(res,404,'Session not found');const result=await c('results').findOne({attempt_id:session.id,user_id:uid(req.user)});if(!result)return err(res,409,'Submit exam results before finishing session');await c('sessions').updateOne({id:session.id,user_id:uid(req.user),status:'active'},{$set:{status:'finished',finished_at:new Date()}});res.json({success:true});}));
 app.post('/api/exam/sample-leads',rate,asyncRoute(async(req,res)=>{const b=req.body||{};if(!clean(b.name)||!validEmail(clean(b.email))||!clean(b.phone))return err(res,400,'Name, email and phone required');await c('sample_leads').insertOne({id:id(),name:clean(b.name),email:clean(b.email),phone:clean(b.phone),exam_type:clean(b.exam_type||b.type),mock:clean(b.mock),sample_year:clean(b.sampleYear),access_mode:clean(b.access_mode),exam_url:clean(b.exam_url),created_at:new Date()});res.json({success:true});}));
 app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
   const b = req.body || {};
@@ -171,16 +171,27 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
     created_at: new Date()
   };
 
-  const update = await c('sessions').updateOne(
-    { id: s.id, status: 'active' },
-    { $set: { status: 'finished', finished_at: new Date() } }
-  );
-
-  if (!update.modifiedCount) {
-    return err(res, 409, 'Attempt already finished');
+  // Persist the result BEFORE finalizing the session. A failed insert must not
+  // strand an attempt in the finished state with no result.
+  // The unique results.attempt_id index arbitrates concurrent submissions.
+  try {
+    await c('results').insertOne(result);
+  } catch (e) {
+    if (e.code !== 11000) throw e;
+    const existing = await c('results').findOne({attempt_id:s.id,user_id:uid(req.user)});
+    if (!existing) throw e;
+    const participants = await c('results').countDocuments({exam_id:exam.id});
+    const rank = 1 + await c('results').countDocuments({exam_id:exam.id,score:{$gt:existing.score}});
+    await c('sessions').updateOne({id:s.id,user_id:uid(req.user),status:'active'},{$set:{status:'finished',finished_at:new Date()}});
+    return res.json({success:true,alreadySubmitted:true,score:existing.score,total:existing.total,percentage:existing.percentage,rank,participants,risk:existing.risk,message:'Result already saved'});
   }
 
-  await c('results').insertOne(result);
+  // If finalization fails transiently, the result is still durable and a
+  // subsequent request returns it through the existing idempotency path.
+  await c('sessions').updateOne(
+    {id:s.id,user_id:uid(req.user),status:'active'},
+    {$set:{status:'finished',finished_at:new Date()}}
+  );
 
   const group = { exam_id: exam.id };
   const participants = await c('results').countDocuments(group);
@@ -190,12 +201,9 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
     score: { $gt: score }
   });
 
-  await c('results').updateOne(
-    { id: result.id },
-    { $set: { rank } }
-  );
-
-  await c('completions').insertOne({
+  try {
+    await c('results').updateOne({id:result.id},{$set:{rank}});
+    await c('completions').insertOne({
     id: id(),
     name: result.name,
     email: result.email,
@@ -203,7 +211,10 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
     exam_title: exam.title,
     details: { ...result, rank, participants, answered },
     created_at: new Date()
-  });
+    });
+  } catch (auxError) {
+    console.error('Result persisted; ancillary ranking/completion write failed',auxError);
+  }
 
   res.json({
     success: true,
