@@ -1104,9 +1104,11 @@
         access: requestedAccess,
       });
       if (requestedMock) query.set("mock", requestedMock);
+      if (requestedAccess === "free") query.set("exam_id", params.get("exam_id") || "");
       if (requestedYear) query.set("sampleYear", requestedYear);
 
       const examToken = localStorage.getItem("token") || localStorage.getItem("studentToken") || (() => { try { return JSON.parse(localStorage.getItem("kcd_auth") || "{}").token || JSON.parse(localStorage.getItem("kcd_access") || "{}").token; } catch { return null; } })();
+      if (requestedAccess === "free" && !examToken) { location.replace("/login.html"); return; }
       const response = await fetch(`/api/exam/get-active?${query.toString()}`, {
         headers: examToken ? { Authorization: `Bearer ${examToken}` } : {},
       });
