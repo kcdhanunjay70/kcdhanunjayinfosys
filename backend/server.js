@@ -84,7 +84,125 @@ app.post('/api/exam/session',auth,asyncRoute(async(req,res)=>{const examId=clean
 app.put('/api/exam/session/:id/answers',auth,asyncRoute(async(req,res)=>{const s=await c('sessions').findOne({id:req.params.id,user_id:uid(req.user),status:'active'});if(!s||s.expires_at<=new Date())return err(res,409,'Session expired or unavailable');const validIds=new Set((await c('questions').find({exam_id:s.exam_id}).project({id:1}).toArray()).map(q=>q.id));const answers={};for(const [k,v] of Object.entries(req.body.answers||{})){if(validIds.has(k)&&/^[A-D]$/.test(v))answers[k]=v;}await c('sessions').updateOne({id:s.id,user_id:uid(req.user),status:'active'},{$set:{answers}});res.json({success:true});}));
 app.post('/api/exam/session/:id/finish',auth,asyncRoute(async(req,res)=>{await c('sessions').updateOne({id:req.params.id,user_id:uid(req.user),status:'active'},{$set:{status:'finished'}});res.json({success:true});}));
 app.post('/api/exam/sample-leads',rate,asyncRoute(async(req,res)=>{const b=req.body||{};if(!clean(b.name)||!validEmail(clean(b.email))||!clean(b.phone))return err(res,400,'Name, email and phone required');await c('sample_leads').insertOne({id:id(),name:clean(b.name),email:clean(b.email),phone:clean(b.phone),exam_type:clean(b.exam_type||b.type),mock:clean(b.mock),sample_year:clean(b.sampleYear),access_mode:clean(b.access_mode),exam_url:clean(b.exam_url),created_at:new Date()});res.json({success:true});}));
-app.post('/api/results/submit',optionalAuth,asyncRoute(async(req,res)=>{const b=req.body||{};const exam=await c('exams').findOne({id:clean(b.exam_id)});if(!exam)return err(res,404,'Exam not found');const sample=false; // All admin-managed exams require an authenticated server session.if((!sample||isFreeRegisteredExam(exam))&&!req.user)return err(res,401,'Login required');if(!sample&&req.user?.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,exam.type,exam.mock))return err(res,403,'Payment required');const s=b.attempt_id?await c('sessions').findOne({id:clean(b.attempt_id),exam_id:exam.id,user_id:req.user&&uid(req.user)}):null;if(!sample&&(!s||s.status!=='active'||s.expires_at.getTime()+60000<Date.now()))return err(res,409,'Active exam session required');if(s&&await c('results').findOne({attempt_id:s.id}))return err(res,409,'Attempt already submitted');const qs=await c('questions').find({exam_id:exam.id}).toArray();if(!qs.length)return err(res,409,'Exam has no questions');const answers=s?s.answers:(b.answers||{});let score=0,answered=0;for(const q of qs){if(/^[A-D]$/.test(answers[q.id]||'')){answered++;if(answers[q.id]===q.correct_answer)score++;}}const result={id:id(),attempt_id:s?.id||null,user_id:req.user?uid(req.user):null,studentId:req.user?.username||clean(b.sampleStudent?.email)||'guest',name:req.user?.name||clean(b.sampleStudent?.name),email:req.user?.email||clean(b.sampleStudent?.email),phone:req.user?.phone||clean(b.sampleStudent?.phone),exam_id:exam.id,exam:exam.title,exam_key:clean(b.exam_key)||exam.id,score,total:qs.length,percentage:Number((score/qs.length*100).toFixed(2)),risk:Math.min(100,Math.max(0,Number(b.risk)||0)),riskTypes:b.riskTypes||{},created_at:new Date()};if(s){const update=await c('sessions').updateOne({id:s.id,status:'active'},{$set:{status:'finished',finished_at:new Date()}});if(!update.modifiedCount)return err(res,409,'Attempt already finished');}await c('results').insertOne(result);const group={exam_id:exam.id};const participants=await c('results').countDocuments(group);const rank=1+await c('results').countDocuments({...group,score:{$gt:score}});await c('results').updateOne({id:result.id},{$set:{rank}});await c('completions').insertOne({id:id(),name:result.name,email:result.email,phone:result.phone,exam_title:exam.title,details:{...result,rank,participants,answered},created_at:new Date()});res.json({success:true,score,total:qs.length,percentage:result.percentage,rank,participants,risk:result.risk,message:'Result saved'});}));
+app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
+  const b = req.body || {};
+  const exam = await c('exams').findOne({ id: clean(b.exam_id) });
+
+  if (!exam) return err(res, 404, 'Exam not found');
+
+  const sample = false;
+  // All admin-managed exams require an authenticated server session.
+
+  if (!req.user) return err(res, 401, 'Login required');
+
+  if (
+    req.user.role !== 'admin' &&
+    !isFreeRegisteredExam(exam) &&
+    !await paid(req.user, exam.type, exam.mock)
+  ) {
+    return err(res, 403, 'Payment required');
+  }
+
+  const s = b.attempt_id
+    ? await c('sessions').findOne({
+        id: clean(b.attempt_id),
+        exam_id: exam.id,
+        user_id: uid(req.user)
+      })
+    : null;
+
+  if (
+    !s ||
+    s.status !== 'active' ||
+    s.expires_at.getTime() + 60000 < Date.now()
+  ) {
+    return err(res, 409, 'Active exam session required');
+  }
+
+  if (await c('results').findOne({ attempt_id: s.id })) {
+    return err(res, 409, 'Attempt already submitted');
+  }
+
+  const qs = await c('questions').find({ exam_id: exam.id }).toArray();
+
+  if (!qs.length) return err(res, 409, 'Exam has no questions');
+
+  const answers = s.answers;
+  let score = 0;
+  let answered = 0;
+
+  for (const q of qs) {
+    if (/^[A-D]$/.test(answers[q.id] || '')) {
+      answered++;
+      if (answers[q.id] === q.correct_answer) score++;
+    }
+  }
+
+  const result = {
+    id: id(),
+    attempt_id: s.id,
+    user_id: uid(req.user),
+    studentId: req.user.username,
+    name: req.user.name,
+    email: req.user.email,
+    phone: req.user.phone,
+    exam_id: exam.id,
+    exam: exam.title,
+    exam_key: clean(b.exam_key) || exam.id,
+    score,
+    total: qs.length,
+    percentage: Number((score / qs.length * 100).toFixed(2)),
+    risk: Math.min(100, Math.max(0, Number(b.risk) || 0)),
+    riskTypes: b.riskTypes || {},
+    created_at: new Date()
+  };
+
+  const update = await c('sessions').updateOne(
+    { id: s.id, status: 'active' },
+    { $set: { status: 'finished', finished_at: new Date() } }
+  );
+
+  if (!update.modifiedCount) {
+    return err(res, 409, 'Attempt already finished');
+  }
+
+  await c('results').insertOne(result);
+
+  const group = { exam_id: exam.id };
+  const participants = await c('results').countDocuments(group);
+
+  const rank = 1 + await c('results').countDocuments({
+    ...group,
+    score: { $gt: score }
+  });
+
+  await c('results').updateOne(
+    { id: result.id },
+    { $set: { rank } }
+  );
+
+  await c('completions').insertOne({
+    id: id(),
+    name: result.name,
+    email: result.email,
+    phone: result.phone,
+    exam_title: exam.title,
+    details: { ...result, rank, participants, answered },
+    created_at: new Date()
+  });
+
+  res.json({
+    success: true,
+    score,
+    total: qs.length,
+    percentage: result.percentage,
+    rank,
+    participants,
+    risk: result.risk,
+    message: 'Result saved'
+  });
+}));
+
 app.get('/api/results/admin/history',auth,admin,asyncRoute(async(req,res)=>{const rows=await c('results').find().sort({created_at:-1}).limit(100).toArray();const examIds=[...new Set(rows.map(r=>r.exam_id).filter(Boolean))];const scores=examIds.length?await c('results').find({exam_id:{$in:examIds}},{projection:{exam_id:1,score:1}}).toArray():[];const byExam=new Map();for(const r of scores){if(!byExam.has(r.exam_id))byExam.set(r.exam_id,[]);byExam.get(r.exam_id).push(Number(r.score)||0);}res.json({results:rows.map(r=>({studentId:r.studentId,exam:r.exam,score:r.score,percentage:r.percentage,rank:1+(byExam.get(r.exam_id)||[]).filter(score=>score>Number(r.score||0)).length,completedAt:r.created_at}))});}));
 // Student-owned result history. Never trust a student ID supplied by the browser.
 app.get('/api/results/my-history',auth,asyncRoute(async(req,res)=>{
