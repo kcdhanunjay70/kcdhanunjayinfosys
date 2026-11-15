@@ -6,7 +6,7 @@
 <link rel="stylesheet" href="/access.css">
 <style>
 :root{color-scheme:light}body{margin:0;min-height:100vh;background:linear-gradient(135deg,#078f9e,#12a7ad);font-family:system-ui,Arial,sans-serif;color:#fff}*{box-sizing:border-box}
-.portal{max-width:1150px;margin:auto;padding:24px 18px 65px}.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px}.brand{font-weight:800;font-size:clamp(18px,2.5vw,26px);color:#fff;text-decoration:none}.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.pill{border:1px solid #ffffff70;border-radius:100px;padding:7px 12px;font-size:13px}.logout{background:#fff;color:#075c69;border:0;border-radius:10px;padding:10px 17px;cursor:pointer;font-weight:700}.hero,.section{background:#ffffff20;border:1px solid #ffffff45;border-radius:20px;padding:clamp(18px,3vw,32px);box-shadow:0 12px 28px #00495824;backdrop-filter:blur(6px)}.hero h1{margin:0 0 8px;font-size:clamp(25px,4vw,37px)}.hero p{margin:6px 0}.muted{color:#e5fbff}.nav{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}.nav a,.tile{color:#fff;text-decoration:none}.nav a{padding:10px 13px;border:1px solid #ffffff70;border-radius:10px;background:#034f6580;font-weight:650;font-size:14px}.nav a:hover,.tile:hover{background:#ffffff33}.section{margin-top:22px}.section h2{margin:0 0 16px;font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.tile{display:block;padding:20px;border:1px solid #ffffff70;border-radius:14px;background:#07556b77;min-height:124px}.tile strong{display:block;font-size:18px;margin-bottom:10px}.tile span{font-size:14px;line-height:1.5;color:#e6f9fb}.status{padding:12px;border-radius:10px;background:#003e54a8;margin-top:15px}.hidden{display:none!important}a:focus-visible,button:focus-visible{outline:3px solid #ffe38c;outline-offset:3px}
+.portal{max-width:1150px;margin:auto;padding:24px 18px 65px}.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px}.brand{font-weight:800;font-size:clamp(18px,2.5vw,26px);color:#fff;text-decoration:none}.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.pill{border:1px solid #ffffff70;border-radius:100px;padding:7px 12px;font-size:13px}.logout{background:#fff;color:#075c69;border:0;border-radius:10px;padding:10px 17px;cursor:pointer;font-weight:700}.hero,.section{background:#ffffff20;border:1px solid #ffffff45;border-radius:20px;padding:clamp(18px,3vw,32px);box-shadow:0 12px 28px #00495824;backdrop-filter:blur(6px)}.hero h1{margin:0 0 8px;font-size:clamp(25px,4vw,37px)}.hero p{margin:6px 0}.muted{color:#e5fbff}.nav{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}.nav a,.tile{color:#fff;text-decoration:none}.nav a{padding:10px 13px;border:1px solid #ffffff70;border-radius:10px;background:#034f6580;font-weight:650;font-size:14px}.nav a:hover,.tile:hover{background:#ffffff33}.section{margin-top:22px}.section h2{margin:0 0 16px;font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.tile{display:block;padding:20px;border:1px solid #ffffff70;border-radius:14px;background:#07556b77;min-height:124px}.tile strong{display:block;font-size:18px;margin-bottom:10px}.tile span{font-size:14px;line-height:1.5;color:#e6f9fb}.status{padding:12px;border-radius:10px;background:#003e54a8;margin-top:15px}.results-table{width:100%;border-collapse:collapse;min-width:560px}.results-table th,.results-table td{padding:11px;text-align:left;border-bottom:1px solid #ffffff50}.results-wrap{overflow-x:auto}.results-table th{background:#034f6580}.hidden{display:none!important}a:focus-visible,button:focus-visible{outline:3px solid #ffe38c;outline-offset:3px}
 </style>
 </head>
 <body>
@@ -14,7 +14,7 @@
 <header class="top"><a class="brand" href="/">KCDHANUNJAY INFOSYS</a><div class="actions"><span class="pill">Student Portal</span><button class="logout" id="logout" type="button">Logout</button></div></header>
 <main>
 <section class="hero"><h1>Welcome, <span id="studentName">Student</span>!</h1><p class="muted">Explore your courses, projects and mock examinations from one place.</p><p><strong>Student ID:</strong> <span id="studentId">—</span></p><p id="studentEmail" class="muted"></p></section>
-<nav class="nav" aria-label="Student navigation"><a href="/#home">Home</a><a href="/#courses">Courses</a><a href="/#project-usp">Projects</a><a href="/#examMocksHeader">Mock Exams</a><a href="/my-payments.html">My Payments</a><a href="/#contact">Contact</a></nav>
+<nav class="nav" aria-label="Student navigation"><a href="/#home">Home</a><a href="/#courses">Courses</a><a href="/#project-usp">Projects</a><a href="/#examMocksHeader">Mock Exams</a><a href="#my-results">My Results</a><a href="/my-payments.html">My Payments</a><a href="/#contact">Contact</a></nav>
 <section class="section"><h2>Your Learning Portal</h2><div class="grid">
 <a class="tile" href="/#home"><strong>🏠 Full Website</strong><span>Visit the complete KCDhanunjay Infosys website.</span></a>
 <a class="tile" href="/#courses"><strong>📚 Courses</strong><span>Browse available courses and learning materials.</span></a>
@@ -23,7 +23,7 @@
 <a class="tile" href="/my-payments.html"><strong>💳 My Payments</strong><span>View your payment information and status.</span></a>
 <a class="tile" href="/#contact"><strong>✉️ Contact</strong><span>Reach the institute for help and support.</span></a>
 </div></section>
-<section class="section"><h2>Results & Rankings</h2><p>Exam results and rankings will appear through the existing exam result flow where available. A personal results history requires separate integration.</p></section>
+<section class="section" id="my-results"><h2>My Results & Rankings</h2><p class="muted">Your latest 100 exam submissions, loaded securely from the database.</p><button class="logout" type="button" id="refreshResults">Refresh Results</button><p id="resultsStatus" role="status">Loading your results…</p><div class="results-wrap"><table class="results-table"><thead><tr><th>Exam</th><th>Marks</th><th>Percentage</th><th>Rank</th><th>Completed</th></tr></thead><tbody id="myResultsRows"></tbody></table></div></section>
 </main></div>
 <div id="checking" role="status" style="max-width:500px;margin:20vh auto;padding:24px;text-align:center">Checking your student session…</div>
 <script>
@@ -34,6 +34,24 @@ const checking=document.getElementById('checking');
 function goLogin(){localStorage.removeItem('token');localStorage.removeItem('user');location.replace('/login.html');}
 if(!token){goLogin();return;}
 document.getElementById('logout').addEventListener('click',goLogin);
+async function loadMyResults(){
+ const status=document.getElementById('resultsStatus'),body=document.getElementById('myResultsRows');
+ body.replaceChildren();status.textContent='Loading your results…';
+ try{
+  const response=await fetch('/api/results/my-history',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+  if(!response.ok)throw new Error(response.status===401?'Session expired':`Results request failed (${response.status})`);
+  const data=await response.json();if(!data.success)throw new Error(data.message||'Could not load results');
+  const results=Array.isArray(data.results)?data.results:[];
+  for(const result of results){
+   const tr=document.createElement('tr');
+   const values=[result.exam||'—',`${result.score??0}/${result.total??'—'}`,`${result.percentage??0}%`,result.rank??'—',result.completedAt?new Date(result.completedAt).toLocaleString():'—'];
+   for(const value of values){const td=document.createElement('td');td.textContent=String(value);tr.appendChild(td);}body.appendChild(tr);
+  }
+  status.textContent=results.length?`${results.length} result(s) loaded`:'No exam results found for this account yet.';
+ }catch(error){status.textContent=error.message;}
+}
+document.getElementById('refreshResults').addEventListener('click',loadMyResults);
+
 fetch('/api/auth/verify',{headers:{Authorization:'Bearer '+token},cache:'no-store'})
 .then(async r=>{if(!r.ok)throw new Error('Session invalid');return r.json();})
 .then(data=>{
@@ -49,6 +67,7 @@ document.getElementById('studentId').textContent=user.username||'Not available';
 document.getElementById('studentEmail').textContent=user.email||'';
 document.getElementById('portal').hidden=false;
 checking.classList.add('hidden');
+loadMyResults();
 })
 .catch(()=>goLogin());
 })();
