@@ -22,17 +22,17 @@
             <form class="form" id="registerForm">
 
                 <label>Name
-                    <input name="name" required placeholder="Student name">
+                    <input name="name" type="text" required minlength="2" maxlength="100" autocomplete="name" placeholder="Student name">
                 </label>
 
-                <p>Your Student ID will be generated automatically after registration (9494705353xxx).</p>
+                <p class="muted">Your unique Student ID will be generated after successful registration. It is not your phone number.</p>
 
                 <label>Email
-                    <input name="email" type="email" required placeholder="student@example.com">
+                    <input name="email" type="email" required autocomplete="email" placeholder="student@example.com" title="Enter a valid email address containing @">
                 </label>
 
                 <label>Phone
-                    <input name="phone" required inputmode="tel" pattern="[0-9]{10}" placeholder="10 digit mobile number">
+                    <input name="phone" type="tel" required inputmode="numeric" autocomplete="tel-national" maxlength="10" pattern="[0-9]{10}" title="Enter exactly 10 digits without +91 or leading zero" placeholder="10-digit mobile number">
                 </label>
 
                 <label>Password
@@ -47,7 +47,14 @@
             </form>
 
             <!-- ✅ MESSAGE -->
-            <div id="message" class="message"></div>
+            <div id="message" class="message" role="status" aria-live="polite"></div>
+            <div id="registrationResult" hidden style="margin-top:16px;padding:16px;border-radius:12px;background:#e8f9f5;color:#133a34;overflow-wrap:anywhere">
+                <strong>Registration successful!</strong>
+                <p>Your Student ID: <strong id="generatedStudentId"></strong></p>
+                <p>Save this ID. You can log in using your Student ID, email, or mobile number.</p>
+                <button type="button" id="copyStudentId">Copy Student ID</button>
+                <a class="btn btn-secondary" id="resultLoginLink" href="/login.html">Go to Login</a>
+            </div>
 
         </section>
     </main>
