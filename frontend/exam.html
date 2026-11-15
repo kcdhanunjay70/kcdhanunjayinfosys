@@ -1,0 +1,1332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KCDHANUNJAY INFOSYS Mock Exam</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Arial, sans-serif;
+      color: #e5f9ff;
+      background:
+        linear-gradient(180deg, rgba(2, 6, 23, 0.92), rgba(8, 47, 73, 0.88)),
+        url("/assets/kcd-lab-01.jpg") center/cover fixed;
+    }
+    button, input { font: inherit; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(125, 211, 252, 0.26);
+      background: rgba(2, 6, 23, 0.9);
+      backdrop-filter: blur(14px);
+    }
+    .brand {
+      display: grid;
+      gap: 2px;
+      min-width: 220px;
+    }
+    .brand strong { font-size: 17px; }
+    .brand span { color: #bae6fd; font-size: 13px; }
+    .status-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 8px;
+    }
+    .language-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 12px 18px 0;
+    }
+    .language-btn {
+      min-height: 34px;
+      border: 1px solid rgba(186, 230, 253, 0.3);
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: #e5f9ff;
+      background: rgba(15, 23, 42, 0.76);
+      cursor: pointer;
+      font-weight: 800;
+    }
+    .language-btn.active {
+      color: #041014;
+      background: linear-gradient(135deg, #bbf7d0, #7dd3fc);
+    }
+    .pill {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 6px 10px;
+      border: 1px solid rgba(186, 230, 253, 0.32);
+      border-radius: 6px;
+      color: #ecfeff;
+      background: rgba(14, 116, 144, 0.34);
+      font-weight: 700;
+      font-size: 13px;
+    }
+    .btn {
+      min-height: 38px;
+      border: 0;
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: #041014;
+      background: linear-gradient(135deg, #bbf7d0, #7dd3fc);
+      font-weight: 800;
+      cursor: pointer;
+    }
+    .btn.secondary {
+      color: #e5f9ff;
+      border: 1px solid rgba(186, 230, 253, 0.38);
+      background: rgba(15, 23, 42, 0.72);
+    }
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 280px;
+      gap: 18px;
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+    }
+    .paper, .sidebar {
+      border: 1px solid rgba(125, 211, 252, 0.24);
+      border-radius: 8px;
+      background: rgba(2, 6, 23, 0.76);
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+    }
+    .paper { overflow: hidden; }
+    .paper-head {
+      display: grid;
+      gap: 6px;
+      padding: 18px;
+      border-bottom: 1px solid rgba(125, 211, 252, 0.2);
+      background: rgba(8, 47, 73, 0.4);
+    }
+    h1 {
+      margin: 0;
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.1;
+    }
+    .subtext {
+      margin: 0;
+      color: #bae6fd;
+      line-height: 1.4;
+    }
+    .muted {
+      color: #94a3b8;
+      font-size: 12px;
+    }
+    .message {
+      margin: 18px;
+      padding: 12px;
+      border: 1px solid rgba(251, 191, 36, 0.42);
+      border-radius: 8px;
+      color: #fef3c7;
+      background: rgba(120, 53, 15, 0.32);
+    }
+    .message.ready {
+      border-color: rgba(134, 239, 172, 0.42);
+      color: #bbf7d0;
+      background: rgba(20, 83, 45, 0.28);
+    }
+    .question-list {
+      display: grid;
+      gap: 14px;
+      padding: 18px;
+    }
+    .question-card {
+      scroll-margin-top: 88px;
+      border: 1px solid rgba(186, 230, 253, 0.22);
+      border-radius: 8px;
+      padding: 14px;
+      background: rgba(15, 23, 42, 0.68);
+    }
+    .question-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+    .question-number {
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: 0 0 auto;
+      border-radius: 6px;
+      color: #041014;
+      background: #7dd3fc;
+      font-weight: 900;
+    }
+    .question-text {
+      flex: 1;
+      min-width: 0;
+      color: #f8fafc;
+      line-height: 1.5;
+      font-size: 16px;
+      overflow-wrap: anywhere;
+    }
+    .translation-stack {
+      display: grid;
+      gap: 8px;
+    }
+    .translation-line {
+      display: grid;
+      gap: 3px;
+    }
+    .language-tag {
+      width: max-content;
+      border: 1px solid rgba(186, 230, 253, 0.28);
+      border-radius: 999px;
+      padding: 2px 7px;
+      color: #bae6fd;
+      font-size: 11px;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .source {
+      margin-top: 6px;
+      color: #93c5fd;
+      font-size: 12px;
+    }
+    .media-list {
+      display: grid;
+      gap: 8px;
+      margin: 10px 0;
+    }
+    .media-list img {
+      max-width: 100%;
+      height: auto;
+      border: 1px solid rgba(186, 230, 253, 0.28);
+      border-radius: 6px;
+      background: #fff;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 12px;
+    }
+    .option {
+      min-height: 48px;
+      display: grid;
+      grid-template-columns: 30px minmax(0, 1fr);
+      gap: 8px;
+      align-items: start;
+      width: 100%;
+      border: 1px solid rgba(186, 230, 253, 0.24);
+      border-radius: 8px;
+      padding: 10px;
+      color: #e0f2fe;
+      background: rgba(8, 47, 73, 0.42);
+      text-align: left;
+    }
+    .option.selected {
+      border-color: #86efac;
+      color: #052e16;
+      background: linear-gradient(135deg, #bbf7d0, #7dd3fc);
+    }
+    .option:disabled,
+    .jump:disabled {
+      opacity: 0.48;
+      cursor: not-allowed;
+    }
+    .option-label {
+      width: 26px;
+      height: 26px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      color: #082f49;
+      background: #bae6fd;
+      font-weight: 900;
+    }
+    .option.selected .option-label { background: #fff; }
+    .option-text {
+      min-width: 0;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .image-only-note {
+      color: #bae6fd;
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .sidebar {
+      position: sticky;
+      top: 74px;
+      align-self: start;
+      padding: 14px;
+    }
+    .sidebar h2 {
+      margin: 0 0 10px;
+      font-size: 18px;
+    }
+    .student-box {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .student-box input {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid rgba(186, 230, 253, 0.3);
+      border-radius: 6px;
+      padding: 8px 10px;
+      color: #e5f9ff;
+      background: rgba(15, 23, 42, 0.72);
+    }
+    .progress {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0;
+    }
+    .bar {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(186, 230, 253, 0.18);
+    }
+    .bar span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #86efac, #38bdf8);
+    }
+    .proctor-panel {
+      display: grid;
+      gap: 8px;
+      margin: 12px 0;
+      padding: 10px;
+      border: 1px solid rgba(251, 191, 36, 0.38);
+      border-radius: 8px;
+      background: rgba(120, 53, 15, 0.2);
+    }
+    .proctor-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      font-weight: 900;
+      color: #fef3c7;
+    }
+    .risk-meter {
+      height: 8px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(254, 243, 199, 0.18);
+    }
+    .risk-meter span {
+      display: block;
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #22c55e, #facc15, #ef4444);
+    }
+    .proctor-list {
+      display: grid;
+      gap: 6px;
+      max-height: 150px;
+      overflow: auto;
+      color: #fde68a;
+      font-size: 12px;
+    }
+    .proctor-item {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      border-top: 1px solid rgba(251, 191, 36, 0.18);
+      padding-top: 6px;
+    }
+    .question-nav {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      max-height: 360px;
+      overflow: auto;
+      padding-right: 2px;
+    }
+    .jump {
+      height: 34px;
+      border: 1px solid rgba(186, 230, 253, 0.22);
+      border-radius: 6px;
+      color: #dbeafe;
+      background: rgba(8, 47, 73, 0.45);
+      cursor: pointer;
+    }
+    .jump.answered {
+      color: #041014;
+      background: #86efac;
+    }
+    .result {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+      border-radius: 8px;
+      color: #052e16;
+      background: #bbf7d0;
+      font-weight: 800;
+      line-height: 1.4;
+    }
+    .result .result-line { display: block; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; padding: 10px; }
+      .sidebar { position: static; }
+      .options { grid-template-columns: 1fr; }
+      .topbar { align-items: flex-start; }
+      .status-row { justify-content: flex-start; }
+    }
+    @media (max-width: 640px) {
+      body {
+        background-attachment: scroll;
+      }
+      .topbar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+        padding: 10px 12px;
+      }
+      .brand {
+        min-width: 0;
+      }
+      .brand strong {
+        font-size: 15px;
+        line-height: 1.15;
+      }
+      .brand span {
+        font-size: 12px;
+      }
+      .status-row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        width: 100%;
+        gap: 7px;
+      }
+      .pill,
+      .btn {
+        width: 100%;
+        min-height: 40px;
+        padding: 8px 9px;
+        font-size: 12px;
+      }
+      .layout {
+        gap: 10px;
+        padding: 10px;
+      }
+      .paper,
+      .sidebar,
+      .question-card {
+        border-radius: 7px;
+      }
+      .paper-head {
+        padding: 14px;
+      }
+      h1 {
+        font-size: 22px;
+        line-height: 1.18;
+      }
+      .subtext {
+        font-size: 13px;
+      }
+      .language-row {
+        gap: 7px;
+        padding: 10px 12px 0;
+      }
+      .language-btn {
+        flex: 1 1 auto;
+        min-height: 38px;
+      }
+      .message,
+      .question-list {
+        margin: 10px;
+        padding: 10px;
+      }
+      .question-list {
+        gap: 10px;
+        margin: 0;
+      }
+      .question-card {
+        padding: 11px;
+        scroll-margin-top: 126px;
+      }
+      .question-top {
+        gap: 9px;
+      }
+      .question-number {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+      }
+      .question-text {
+        font-size: 15px;
+        line-height: 1.45;
+      }
+      .source {
+        overflow-wrap: anywhere;
+      }
+      .media-list img,
+      .option-text img {
+        width: 100%;
+        max-height: 58vh;
+        object-fit: contain;
+      }
+      .option {
+        min-height: 46px;
+        grid-template-columns: 28px minmax(0, 1fr);
+        padding: 9px;
+      }
+      .option-label {
+        width: 25px;
+        height: 25px;
+      }
+      .sidebar {
+        padding: 12px;
+      }
+      .student-box {
+        grid-template-columns: 1fr;
+      }
+      .student-box input {
+        min-height: 42px;
+      }
+      .proctor-list {
+        max-height: 120px;
+      }
+      .question-nav {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        max-height: 190px;
+        gap: 5px;
+      }
+      .jump {
+        height: 36px;
+        font-size: 13px;
+      }
+      #submitSide {
+        min-height: 44px;
+      }
+      .result {
+        font-size: 15px;
+      }
+    }
+    @media (max-width: 380px) {
+      .status-row {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+      .question-nav {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        max-height: 160px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <strong>KCDHANUNJAY INFOSYS</strong>
+      <span>Free mock exam practice</span>
+    </div>
+    <div class="status-row">
+      <span class="pill" id="timer">--:--</span>
+      <span class="pill" id="answeredPill">Answered 0/0</span>
+      <button class="btn secondary" type="button" onclick="window.location.href='/'">Home</button>
+      <button class="btn" type="button" id="submitTop">Submit</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="paper">
+      <div class="paper-head">
+        <h1 id="examTitle">Loading mock exam...</h1>
+        <p class="subtext" id="examMeta">Please wait while questions are loaded.</p>
+      </div>
+      <div class="language-row" id="languageRow" aria-label="Question language"></div>
+      <div class="message" id="message">Loading questions and options...</div>
+      <div class="question-list" id="questionList"></div>
+    </section>
+
+    <aside class="sidebar">
+      <h2>Exam Progress</h2>
+      <div class="student-box">
+        <input id="studentName" placeholder="Student name">
+        <input id="studentEmail" placeholder="Email">
+        <input id="studentPhone" placeholder="Phone">
+      </div>
+      <div class="progress">
+        <span id="progressText">0 answered</span>
+        <div class="bar"><span id="progressBar"></span></div>
+      </div>
+      <div class="proctor-panel" id="proctorPanel">
+        <div class="proctor-head">
+          <span>AI Proctoring Alerts</span>
+          <span id="riskScore">0/100</span>
+        </div>
+        <div class="risk-meter"><span id="riskBar"></span></div>
+        <div class="proctor-list" id="proctorList">
+          <div class="muted">No alerts yet</div>
+        </div>
+      </div>
+      <div class="question-nav" id="questionNav"></div>
+      <button class="btn" type="button" id="submitSide" style="width:100%; margin-top:12px;">Submit Exam</button>
+      <div class="result" id="resultBox"></div>
+    </aside>
+  </main>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const requestedType = params.get("type") || "ap-eapcet";
+    const requestedMock = params.get("mock") || "";
+    const requestedAccess = params.get("access") || "sample";
+    const requestedYear = params.get("sampleYear") || "";
+    const answers = {};
+    const languageLabels = { en: "English", te: "తెలుగు", hi: "हिन्दी" };
+    let activeLanguage = localStorage.getItem("kcd_exam_language") || "en";
+    let exam = null;
+    let questions = [];
+    let remainingSeconds = 0;
+    let timerHandle = null;
+    let submitted = false;
+    let examUnlocked = false;
+    let examDurationMinutes = 60;
+    let serverAttemptId = null;
+    let serverExpiresAt = null;
+    let autosaveTimer = null;
+    function examAuthToken() {
+      try { return localStorage.getItem("token") || localStorage.getItem("studentToken") || JSON.parse(localStorage.getItem("kcd_auth") || "{}").token || JSON.parse(localStorage.getItem("kcd_access") || "{}").token || ""; }
+      catch { return ""; }
+    }
+    async function saveExamAnswers() {
+      if (!serverAttemptId || submitted) return;
+      const token = examAuthToken();
+      if (!token) return;
+      const response = await fetch(`/api/exam/session/${encodeURIComponent(serverAttemptId)}/answers`, {
+        method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ answers }),
+      });
+      if (!response.ok) throw new Error("Autosave failed");
+    }
+    function queueExamAutosave() {
+      if (!serverAttemptId) return;
+      clearTimeout(autosaveTimer);
+      autosaveTimer = setTimeout(() => saveExamAnswers().catch(() => { el("message").textContent = "Connection lost: answers not yet saved. Please reconnect."; }), 700);
+    }
+    async function restoreExamSession() {
+      if (requestedAccess === "sample" || requestedAccess === "public" || !examAuthToken() || !exam?.id) return;
+      const response = await fetch("/api/exam/session", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${examAuthToken()}` }, body: JSON.stringify({ examId: exam.id, examType: requestedType, mock: requestedMock }) });
+      if (!response.ok) throw new Error("Could not start or resume server exam session");
+      const data = await response.json();
+      serverAttemptId = data.attemptId;
+      serverExpiresAt = Date.parse(data.expiresAt);
+      if (!Number.isFinite(serverExpiresAt)) throw new Error("Invalid server deadline");
+      for (const [key, value] of Object.entries(data.answers || {})) if (/^[A-D]$/.test(value)) answers[key] = value;
+      remainingSeconds = Math.max(0, Math.ceil((serverExpiresAt - Date.now()) / 1000));
+    }
+
+    let riskScore = 0;
+    const riskTypes = {};
+    const proctorActivities = [];
+    const monitoringToken = localStorage.getItem("token") || localStorage.getItem("studentToken");
+    const socket = window.io && monitoringToken ? io({ auth: { token: monitoringToken } }) : null;
+
+    const proctorRules = {
+      tab: { label: "Tab/window changed", marks: 20 },
+      blur: { label: "Exam window unfocused", marks: 15 },
+      copy: { label: "Copy action blocked", marks: 10 },
+      paste: { label: "Paste action blocked", marks: 10 },
+      contextmenu: { label: "Right click blocked", marks: 10 },
+      fullscreen: { label: "Fullscreen exited", marks: 25 },
+    };
+
+    const el = (id) => document.getElementById(id);
+    let studentLeadSaveTimer = null;
+    let lastSavedStudentLeadKey = "";
+
+    function getStoredStudentDetails() {
+      try {
+        return JSON.parse(localStorage.getItem("kcd_exam_student_details") || "null") || {};
+      } catch {
+        localStorage.removeItem("kcd_exam_student_details");
+        return {};
+      }
+    }
+
+    function applyStudentDetails() {
+      const fromUrl = {
+        name: params.get("studentName") || "",
+        email: params.get("studentEmail") || "",
+        phone: params.get("studentPhone") || "",
+      };
+      const stored = getStoredStudentDetails();
+      const details = {
+        name: fromUrl.name || stored.name || "",
+        email: fromUrl.email || stored.email || "",
+        phone: fromUrl.phone || stored.phone || "",
+      };
+      el("studentName").value = details.name;
+      el("studentEmail").value = details.email;
+      el("studentPhone").value = details.phone;
+      if (details.name || details.email || details.phone) {
+        localStorage.setItem("kcd_exam_student_details", JSON.stringify(details));
+      }
+    }
+
+    function currentStudentDetails() {
+      return {
+        name: String(el("studentName")?.value || "").trim(),
+        email: String(el("studentEmail")?.value || "").trim().toLowerCase(),
+        phone: String(el("studentPhone")?.value || "").replace(/\s+/g, "").trim(),
+      };
+    }
+
+    function isValidStudentDetails(details) {
+      return Boolean(
+        details.name
+        && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(details.email)
+        && /^[0-9+()-]{10,16}$/.test(details.phone)
+      );
+    }
+
+    function updateExamGate() {
+      const ready = isValidStudentDetails(currentStudentDetails());
+      examUnlocked = ready;
+      document.querySelectorAll(".option, .jump").forEach((button) => {
+        button.disabled = !ready || submitted;
+      });
+      el("submitTop").disabled = !ready || submitted || !questions.length;
+      el("submitSide").disabled = !ready || submitted || !questions.length;
+      if (!ready) {
+        clearInterval(timerHandle);
+        timerHandle = null;
+        el("message").classList.remove("ready");
+        el("message").style.display = "block";
+        el("message").textContent = "Exam start kavadaniki mundu student name, valid email, mobile number enter cheyyandi.";
+      } else {
+        el("message").classList.add("ready");
+        el("message").style.display = "block";
+        el("message").textContent = "Student details saved. Exam started.";
+        if (questions.length && !timerHandle && remainingSeconds > 0) startTimer();
+      }
+    }
+
+    function isDirect2025SampleExam() {
+      const mock = Number.parseInt(requestedMock || exam?.mock || "", 10);
+      const year = Number.parseInt(requestedYear || "", 10);
+      const directMocks = {
+        "ap-eapcet": new Set([68, 69, 70, 71, 72, 73, 74, 75, 76, 77]),
+        "ap-icet": new Set([21, 22]),
+        "ap-polycet": new Set([24]),
+      };
+      return requestedAccess === "sample" && (year === 2025 || Boolean(directMocks[requestedType]?.has(mock)));
+    }
+
+    async function saveStudentLeadFromExam({ force = false } = {}) {
+      const details = currentStudentDetails();
+      if (!isValidStudentDetails(details)) return false;
+
+      const saveKey = [
+        details.name,
+        details.email,
+        details.phone,
+        requestedType,
+        requestedYear,
+        requestedMock,
+        requestedAccess,
+      ].join("|");
+      if (!force && saveKey === lastSavedStudentLeadKey) return true;
+
+      localStorage.setItem("kcd_exam_student_details", JSON.stringify(details));
+
+      try {
+        const response = await fetch("/api/exam/sample-leads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: details.name,
+            email: details.email,
+            phone: details.phone,
+            type: requestedType,
+            exam_type: requestedType,
+            mock: requestedMock || exam?.mock || "",
+            sampleYear: requestedYear || "",
+            access_mode: isDirect2025SampleExam() ? "direct_2025" : "admin_approval",
+            exam_url: `${window.location.pathname}${window.location.search}`,
+            page_url: window.location.href,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.success === false) throw new Error(data.message || "Student details save failed");
+        lastSavedStudentLeadKey = saveKey;
+        return true;
+      } catch (err) {
+        return false;
+      }
+    }
+
+    function queueStudentLeadSave() {
+      clearTimeout(studentLeadSaveTimer);
+      updateExamGate();
+      studentLeadSaveTimer = setTimeout(() => {
+        saveStudentLeadFromExam();
+      }, 700);
+    }
+
+    function bindStudentLeadAutosave() {
+      ["studentName", "studentEmail", "studentPhone"].forEach((id) => {
+        const input = el(id);
+        input?.addEventListener("input", queueStudentLeadSave);
+        input?.addEventListener("blur", () => {
+          updateExamGate();
+          saveStudentLeadFromExam({ force: true });
+        });
+      });
+    }
+
+    function examRankKey() {
+      return [
+        "exam",
+        requestedType || exam?.actualType || "",
+        requestedAccess || "",
+        requestedYear || "",
+        requestedMock || exam?.mock || "",
+        exam?.id || "",
+      ].map((part) => String(part || "").trim().toLowerCase()).join(":");
+    }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // Render only a small, explicit set of formatting elements from question HTML.
+    // Never copy event handlers, styles, links, SVG or arbitrary attributes.
+    function safeImageUrl(value) {
+      const raw = String(value || "").trim();
+      if (!raw || raw.startsWith("//") || /[\x00-\x1f\x7f]/.test(raw)) return "";
+      try {
+        const parsed = new URL(raw, window.location.href);
+        if (parsed.protocol !== "https:" && parsed.origin !== window.location.origin) return "";
+        if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return "";
+        return parsed.href;
+      } catch { return ""; }
+    }
+
+    function sanitizeQuestionHtml(value) {
+      const documentFragment = new DOMParser().parseFromString(String(value || ""), "text/html");
+      const allowed = new Set(["B", "STRONG", "I", "EM", "U", "P", "BR", "DIV", "SPAN", "SUP", "SUB", "UL", "OL", "LI", "TABLE", "THEAD", "TBODY", "TR", "TD", "TH", "IMG"]);
+      const discarded = new Set(["SCRIPT", "STYLE", "IFRAME", "OBJECT", "EMBED", "SVG", "MATH", "FORM", "INPUT", "BUTTON", "TEMPLATE", "LINK", "META"]);
+      function clean(node) {
+        if (node.nodeType === Node.TEXT_NODE) return document.createTextNode(node.textContent || "");
+        if (node.nodeType !== Node.ELEMENT_NODE) return document.createDocumentFragment();
+        if (discarded.has(node.tagName)) return document.createDocumentFragment();
+        const target = allowed.has(node.tagName) ? document.createElement(node.tagName.toLowerCase()) : document.createDocumentFragment();
+        if (node.tagName === "IMG") {
+          const src = safeImageUrl(node.getAttribute("src"));
+          if (!src) return document.createDocumentFragment();
+          target.setAttribute("src", src);
+          target.setAttribute("alt", String(node.getAttribute("alt") || "Question image").slice(0, 200));
+          target.setAttribute("loading", "lazy");
+        }
+        if (node.tagName !== "IMG") for (const child of node.childNodes) target.appendChild(clean(child));
+        return target;
+      }
+      const holder = document.createElement("div");
+      for (const child of documentFragment.body.childNodes) holder.appendChild(clean(child));
+      return holder.innerHTML;
+    }
+
+    function formatTime(seconds) {
+      const safe = Math.max(0, Number(seconds || 0));
+      const minutes = Math.floor(safe / 60);
+      const secs = safe % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
+    }
+
+    function normalizeLanguageMap(value, fallback) {
+      const result = {};
+      if (fallback) result.en = fallback;
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        Object.entries(value).forEach(([language, text]) => {
+          const key = String(language || "").trim().toLowerCase();
+          const clean = String(text || "").trim();
+          if (key && clean) result[key] = clean;
+        });
+      }
+      return result;
+    }
+
+    function normalizeOptionLanguageMap(value, fallback) {
+      const result = {};
+      if (Array.isArray(fallback) && fallback.some(Boolean)) result.en = fallback;
+      if (value && typeof value === "object" && !Array.isArray(value)) {
+        Object.entries(value).forEach(([language, options]) => {
+          const key = String(language || "").trim().toLowerCase();
+          const list = Array.isArray(options)
+            ? options.slice(0, 4).map((option) => String(option || "").trim())
+            : options && typeof options === "object"
+              ? ["A", "B", "C", "D"].map((label) => String(options[label] || "").trim())
+              : [];
+          if (key && list.some(Boolean)) result[key] = list;
+        });
+      }
+      return result;
+    }
+
+    function formatTextHtml(value) {
+      let text = escapeHtml(value)
+        .replace(/\\textsuperscript\{([^}]*)\}/g, "<sup>$1</sup>")
+        .replace(/\\textsubscript\{([^}]*)\}/g, "<sub>$1</sub>")
+        .replace(/\^\{([^}]*)\}/g, "<sup>$1</sup>")
+        .replace(/_\{([^}]*)\}/g, "<sub>$1</sub>")
+        .replace(/\\times/g, "×")
+        .replace(/\\div/g, "÷")
+        .replace(/\\pm/g, "±")
+        .replace(/\\leq/g, "≤")
+        .replace(/\\geq/g, "≥")
+        .replace(/\\neq/g, "≠")
+        .replace(/\\rightarrow/g, "→")
+        .replace(/\\left|\\right/g, "")
+        .replace(/\\\(|\\\)|\\\[|\\\]/g, "")
+        .replace(/\\\\/g, "<br>");
+      text = text.replace(/\\([A-Za-z]+)/g, "$1");
+      return text;
+    }
+
+    function languageOrder(question) {
+      const keys = new Set([
+        ...Object.keys(question.questionTranslations || {}),
+        ...Object.keys(question.optionTranslations || {}),
+      ]);
+      return ["en", "te", "hi"].filter((language) => keys.has(language));
+    }
+
+    function renderLanguageControls() {
+      const languages = ["en", "te", "hi"];
+      if (!languages.includes(activeLanguage)) activeLanguage = "en";
+      el("languageRow").innerHTML = languages.map((language) => `
+        <button class="language-btn ${language === activeLanguage ? "active" : ""}" type="button" data-language="${language}">
+          ${languageLabels[language] || language.toUpperCase()}
+        </button>
+      `).join("");
+    }
+
+    function translatedQuestionText(question) {
+      return question.questionTranslations?.[activeLanguage]
+        || question.questionTranslations?.en
+        || question.question
+        || question.searchText
+        || "";
+    }
+
+    function translatedOptionText(question, optionIndex) {
+      const translated = question.optionTranslations?.[activeLanguage]?.[optionIndex];
+      const english = question.optionTranslations?.en?.[optionIndex];
+      return translated || english || question.options[optionIndex] || "";
+    }
+
+    function normalizeQuestion(question, index) {
+      const labels = Array.isArray(question.optionLabels) && question.optionLabels.length
+        ? question.optionLabels
+        : ["A", "B", "C", "D"];
+      const options = Array.isArray(question.options) ? question.options : [];
+      const questionTranslations = normalizeLanguageMap(question.questionTranslations, question.question || question.searchText || "");
+      const optionTranslations = normalizeOptionLanguageMap(question.optionTranslations, options);
+      return {
+        ...question,
+        id: question.id || question.externalQuestionId || `q-${index + 1}`,
+        questionNumber: question.questionNumber || index + 1,
+        optionLabels: labels.slice(0, 4),
+        options: options.slice(0, 4),
+        questionTranslations,
+        optionTranslations,
+        questionImages: Array.isArray(question.questionImages) ? question.questionImages : [],
+        optionImages: Array.isArray(question.optionImages) ? question.optionImages : [],
+      };
+    }
+
+    function renderImages(images, alt = "Question image") {
+      const clean = (images || []).map(safeImageUrl).filter(Boolean);
+      if (!clean.length) return "";
+      return `<div class="media-list">${clean.map((src) => `<img src="${escapeHtml(src)}" alt="${escapeHtml(alt)}" loading="lazy"></img>`).join("")}</div>`;
+    }
+
+    function renderQuestions() {
+      el("questionList").innerHTML = questions.map((question, index) => {
+        const options = question.optionLabels.map((label, optionIndex) => {
+          const text = translatedOptionText(question, optionIndex);
+          const optionImages = Array.isArray(question.optionImages[optionIndex]) ? question.optionImages[optionIndex] : [];
+          const optionBody = [
+            text ? formatTextHtml(text) : "",
+            !text && optionImages.length ? `<span class="image-only-note">Image option</span>` : "",
+            renderImages(optionImages, `Option ${label} image`),
+          ].filter(Boolean).join("");
+          return `
+            <button class="option" type="button" data-question-id="${escapeHtml(question.id)}" data-option="${escapeHtml(label)}">
+              <span class="option-label">${escapeHtml(label)}</span>
+              <span class="option-text">${optionBody}</span>
+            </button>
+          `;
+        }).join("");
+        const questionText = translatedQuestionText(question);
+
+        return `
+          <article class="question-card" id="question-${index + 1}">
+            <div class="question-top">
+              <span class="question-number">${index + 1}</span>
+              <div class="question-text">
+                ${question.questionHtml && activeLanguage === "en" ? sanitizeQuestionHtml(question.questionHtml) : formatTextHtml(questionText)}
+                ${question.sourcePdf ? `<div class="source">${escapeHtml(question.sourcePdf)}</div>` : ""}
+              </div>
+            </div>
+            ${renderImages(question.questionImages, `Question ${index + 1} image`)}
+            <div class="options">${options}</div>
+          </article>
+        `;
+      }).join("");
+
+      el("questionNav").innerHTML = questions.map((_, index) =>
+        `<button class="jump" type="button" data-jump="${index + 1}">${index + 1}</button>`
+      ).join("");
+      updateExamGate();
+    }
+
+    function updateProgress() {
+      const answered = Object.keys(answers).length;
+      const total = questions.length;
+      const percentage = total ? (answered / total) * 100 : 0;
+      el("answeredPill").textContent = `Answered ${answered}/${total}`;
+      el("progressText").textContent = `${answered} of ${total} answered`;
+      el("progressBar").style.width = `${percentage}%`;
+
+      questions.forEach((question, index) => {
+        const selected = answers[question.id];
+        document.querySelectorAll(`[data-question-id="${CSS.escape(question.id)}"]`).forEach((button) => {
+          button.classList.toggle("selected", button.dataset.option === selected);
+        });
+        const jump = document.querySelector(`[data-jump="${index + 1}"]`);
+        if (jump) jump.classList.toggle("answered", Boolean(selected));
+      });
+    }
+
+    function renderProctorAlerts() {
+      el("riskScore").textContent = `${Math.min(100, riskScore)}/100`;
+      el("riskBar").style.width = `${Math.min(100, riskScore)}%`;
+      el("proctorList").innerHTML = proctorActivities.length
+        ? proctorActivities.slice().reverse().map((activity) => `
+          <div class="proctor-item">
+            <span>${escapeHtml(activity.label)}</span>
+            <strong>+${activity.marks}</strong>
+          </div>
+        `).join("")
+        : `<div class="muted">No alerts yet</div>`;
+    }
+
+    function recordProctorActivity(type, detail = "") {
+      if (submitted || !examUnlocked) return;
+      const rule = proctorRules[type] || { label: type, marks: 10 };
+      riskTypes[type] = (riskTypes[type] || 0) + 1;
+      riskScore = Math.min(100, riskScore + Number(rule.marks || 0));
+      const activity = {
+        type,
+        label: rule.label,
+        marks: Number(rule.marks || 0),
+        total: riskScore,
+        detail,
+        at: new Date().toISOString(),
+      };
+      proctorActivities.push(activity);
+      renderProctorAlerts();
+
+      socket?.emit("cheating-detected", {
+        type,
+        reason: rule.label,
+        message: rule.label,
+        risk: activity.marks,
+        total: riskScore,
+        exam_id: exam?.id || null,
+        exam_key: examRankKey(),
+        exam_type: requestedType,
+        sampleYear: requestedYear,
+        mock: requestedMock || exam?.mock || "",
+        access: requestedAccess,
+        exam_title: exam?.title || el("examTitle").textContent,
+        student: {
+          name: el("studentName").value,
+          email: el("studentEmail").value,
+          phone: el("studentPhone").value,
+        },
+        activity,
+      });
+
+      if (riskScore >= 100) {
+        submitExam("AI proctoring risk reached 100");
+      }
+    }
+
+    function startTimer(durationMinutes = examDurationMinutes) {
+      if (!examUnlocked) return;
+      if (!remainingSeconds) remainingSeconds = Math.max(1, Number(durationMinutes || 60)) * 60;
+      el("timer").textContent = formatTime(remainingSeconds);
+      clearInterval(timerHandle);
+      timerHandle = setInterval(() => {
+        remainingSeconds = serverExpiresAt ? Math.max(0, Math.ceil((serverExpiresAt - Date.now()) / 1000)) : remainingSeconds - 1;
+        el("timer").textContent = formatTime(remainingSeconds);
+        if (remainingSeconds <= 0) {
+          clearInterval(timerHandle);
+          submitExam("Time completed");
+        }
+      }, 1000);
+    }
+
+    async function loadExam() {
+      const query = new URLSearchParams({
+        type: requestedType,
+        access: requestedAccess,
+      });
+      if (requestedMock) query.set("mock", requestedMock);
+      if (requestedYear) query.set("sampleYear", requestedYear);
+
+      const examToken = localStorage.getItem("token") || localStorage.getItem("studentToken") || (() => { try { return JSON.parse(localStorage.getItem("kcd_auth") || "{}").token || JSON.parse(localStorage.getItem("kcd_access") || "{}").token; } catch { return null; } })();
+      const response = await fetch(`/api/exam/get-active?${query.toString()}`, {
+        headers: examToken ? { Authorization: `Bearer ${examToken}` } : {},
+      });
+      const data = await response.json().catch(() => ({}));
+      if (response.status === 403 && data.paymentRequired) {
+        const paymentUrl = new URL("/payment.html", location.origin);
+        paymentUrl.searchParams.set("type", requestedType);
+        if (requestedMock) paymentUrl.searchParams.set("mock", requestedMock);
+        paymentUrl.searchParams.set("return", location.pathname + location.search);
+        location.assign(paymentUrl.toString());
+        return;
+      }
+      if (!response.ok || data.success === false) {
+        throw new Error(data.message || "Unable to load mock exam");
+      }
+
+      exam = data;
+      questions = (Array.isArray(data.questions) ? data.questions : []).map(normalizeQuestion);
+      if (!questions.length) throw new Error("No questions found for this mock exam");
+
+      el("examTitle").textContent = data.title || "Mock Exam";
+      el("examMeta").textContent = [
+        data.actualType || requestedType,
+        data.mock ? `Mock ${data.mock}` : "",
+        data.shift || "",
+        `${questions.length} questions`,
+        `${data.duration || 60} minutes`,
+      ].filter(Boolean).join(" | ");
+      examDurationMinutes = Math.max(1, Number(data.duration || 60));
+      remainingSeconds = examDurationMinutes * 60;
+      el("timer").textContent = formatTime(remainingSeconds);
+      await restoreExamSession();
+      renderLanguageControls();
+      renderQuestions();
+      updateProgress();
+      updateExamGate();
+    }
+
+    function calculateResult() {
+      const rows = questions.map((question) => {
+        const selected = answers[question.id] || "";
+        const correct = String(question.correct || "").toUpperCase();
+        return {
+          question: question.question || `Question ${question.questionNumber}`,
+          selected,
+          correct,
+          isCorrect: Boolean(selected && correct && selected === correct),
+        };
+      });
+      const correctCount = rows.filter((row) => row.isCorrect).length;
+      return { rows, correctCount, total: rows.length };
+    }
+
+    async function submitExam(reason = "Finished") {
+      if (!questions.length || submitted) return;
+      if (!isValidStudentDetails(currentStudentDetails())) {
+        updateExamGate();
+        return;
+      }
+      if (serverAttemptId) {
+        try { await saveExamAnswers(); } catch { el("message").textContent = "Warning: last answers could not be saved to server."; }
+      }
+      submitted = true;
+      clearInterval(timerHandle);
+      el("submitTop").disabled = true;
+      el("submitSide").disabled = true;
+      await saveStudentLeadFromExam({ force: true });
+
+      const result = calculateResult();
+      const percentage = result.total ? ((result.correctCount / result.total) * 100).toFixed(2) : "0.00";
+      el("resultBox").style.display = "block";
+      el("resultBox").innerHTML = `
+        <span class="result-line">Score: ${result.correctCount}/${result.total} (${percentage}%)</span>
+        <span class="result-line">Rank: calculating...</span>
+        <span class="result-line">Proctor marks: ${riskScore}/100</span>
+      `;
+
+      try {
+        // Send the same authenticated identity used when loading the exam.
+        // Without this header the backend treats a logged-in student as a guest,
+        // which can prevent saving the result to the student's account.
+        const resultToken = localStorage.getItem("token") || localStorage.getItem("studentToken") || (() => {
+          try {
+            return JSON.parse(localStorage.getItem("kcd_auth") || "{}").token || JSON.parse(localStorage.getItem("kcd_access") || "{}").token;
+          } catch { return null; }
+        })();
+        const response = await fetch("/api/results/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(resultToken ? { Authorization: `Bearer ${resultToken}` } : {}),
+          },
+          body: JSON.stringify({
+            exam_id: exam.id,
+            attempt_id: serverAttemptId,
+            exam_key: examRankKey(),
+            exam_type: requestedType,
+            exam_title: exam.title || el("examTitle").textContent,
+            sampleYear: requestedYear,
+            mock: requestedMock || exam.mock || "",
+            access: requestedAccess,
+            answers,
+            reason,
+            risk: riskScore,
+            riskTypes,
+            proctorActivities,
+            responseRows: result.rows,
+            sampleStudent: {
+              name: el("studentName").value,
+              email: el("studentEmail").value,
+              phone: el("studentPhone").value,
+            },
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data.success !== false) {
+          if (serverAttemptId) {
+            fetch(`/api/exam/session/${encodeURIComponent(serverAttemptId)}/finish`, { method: "POST", headers: { Authorization: `Bearer ${examAuthToken()}` } }).catch(() => {});
+          }
+          // The backend has saved and ranked the result before offering WhatsApp sharing.
+          const resultMarkup = `
+            <span class="result-line">Score: ${escapeHtml(data.score)}/${escapeHtml(data.total)} (${escapeHtml(data.percentage)}%)</span>
+            <span class="result-line">Rank: ${escapeHtml(data.rank || "-")} of ${escapeHtml(data.participants || 1)}</span>
+            <span class="result-line">Proctor marks: ${escapeHtml(data.risk ?? riskScore)}/100</span>
+            <span class="result-line">${escapeHtml(data.message || "Result submitted")}</span>
+          `;
+          const whatsappUrl = String(data.whatsappAdminUrl || "");
+          const isAdminWhatsApp = /^https:\/\/wa\.me\/919494705353\?text=/.test(whatsappUrl);
+          if (isAdminWhatsApp) {
+            el("resultBox").innerHTML = `
+              <span class="result-line">Your exam was submitted successfully.</span>
+              <a id="shareResultWhatsApp" class="btn" href="${escapeHtml(whatsappUrl)}" target="_blank" rel="noopener noreferrer" style="display:inline-block;margin:12px 0;padding:12px;background:#16a34a;color:white;border-radius:8px;text-decoration:none;font-weight:bold">Send Result to Admin WhatsApp</a>
+              <span class="result-line">WhatsApp opens with your result message. Please press Send in WhatsApp.</span>
+              <span class="result-line">Opening WhatsApp does not confirm that the message was sent.</span>
+              <div id="finalExamResult" hidden>${resultMarkup}</div>
+              <button id="showExamResult" type="button" class="btn" style="margin-top:10px">View My Result</button>
+            `;
+            const showResult = () => {
+              el("finalExamResult").hidden = false;
+              el("showExamResult").hidden = true;
+            };
+            el("shareResultWhatsApp").addEventListener("click", showResult);
+            el("showExamResult").addEventListener("click", showResult);
+          } else {
+            el("resultBox").innerHTML = resultMarkup;
+          }
+        } else {
+          el("resultBox").innerHTML += `<span class="result-line">${escapeHtml(data.message || "Server did not confirm this result. Contact the administrator before attempting the exam again.")}</span>`;
+        }
+      } catch {
+        // Score is already shown locally; network or mail failures should not hide the result.
+        el("resultBox").innerHTML += `<span class="result-line">Server could not confirm the result. Contact the administrator before attempting the exam again.</span>`;
+      }
+    }
+
+    document.addEventListener("click", (event) => {
+      const option = event.target.closest(".option");
+      if (option) {
+        if (!examUnlocked || option.disabled) {
+          updateExamGate();
+          return;
+        }
+        answers[option.dataset.questionId] = option.dataset.option;
+        queueExamAutosave();
+        updateProgress();
+        return;
+      }
+
+      const jump = event.target.closest("[data-jump]");
+      if (jump) {
+        if (!examUnlocked || jump.disabled) {
+          updateExamGate();
+          return;
+        }
+        document.getElementById(`question-${jump.dataset.jump}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      const languageButton = event.target.closest("[data-language]");
+      if (languageButton) {
+        activeLanguage = languageButton.dataset.language;
+        localStorage.setItem("kcd_exam_language", activeLanguage);
+        renderLanguageControls();
+        renderQuestions();
+        updateProgress();
+      }
+    });
+
+    el("submitTop").addEventListener("click", () => submitExam());
+    el("submitSide").addEventListener("click", () => submitExam());
+    applyStudentDetails();
+    bindStudentLeadAutosave();
+    saveStudentLeadFromExam();
+    updateExamGate();
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) recordProctorActivity("tab");
+    });
+    window.addEventListener("blur", () => recordProctorActivity("blur"));
+    document.addEventListener("copy", (event) => {
+      event.preventDefault();
+      recordProctorActivity("copy");
+    });
+    document.addEventListener("paste", (event) => {
+      event.preventDefault();
+      recordProctorActivity("paste");
+    });
+    document.addEventListener("contextmenu", (event) => {
+      event.preventDefault();
+      recordProctorActivity("contextmenu");
+    });
+    document.addEventListener("fullscreenchange", () => {
+      if (!document.fullscreenElement) recordProctorActivity("fullscreen");
+    });
+
+    loadExam().catch((err) => {
+      el("examTitle").textContent = "Mock exam unavailable";
+      el("examMeta").textContent = "Please go back and choose the exam again.";
+      el("message").textContent = err.message;
+    });
+  </script>
+</body>
+</html>

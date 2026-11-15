@@ -1,0 +1,32 @@
+import 'dotenv/config';
+import express from 'express';
+import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import {MongoClient, ObjectId} from 'mongodb';
+
+const {MONGODB_URI,JWT_SECRET,PORT=5000,FRONTEND_ORIGIN,ADMIN_EMAIL,ADMIN_PASSWORD}=process.env;
+if(!MONGODB_URI || !JWT_SECRET || JWT_SECRET.length<32) throw Error('Set MONGODB_URI and a JWT_SECRET of at least 32 characters');
+const client=new MongoClient(MONGODB_URI); await client.connect();
+const db=client.db(process.env.DB_NAME||'kcdhanunjayinfosys');
+const users=db.collection('users'), results=db.collection('results');
+await Promise.all([users.createIndex({email:1},{unique:true}),users.createIndex({phone:1},{unique:true,sparse:true}),users.createIndex({username:1},{unique:true}),results.createIndex({userId:1,created_at:-1})]);
+if(ADMIN_EMAIL && ADMIN_PASSWORD){const email=ADMIN_EMAIL.trim().toLowerCase();if(!await users.findOne({email})){await users.insertOne({name:'Administrator',email,username:'admin',role:'admin',passwordHash:await bcrypt.hash(ADMIN_PASSWORD,12),created_at:new Date()});console.log('Initial admin created');}}
+const app=express();app.disable('x-powered-by');app.use(helmet());app.use(cors({origin:FRONTEND_ORIGIN?FRONTEND_ORIGIN.split(',').map(x=>x.trim()):false}));app.use(express.json({limit:'200kb'}));
+const authLimit=rateLimit({windowMs:15*60*1000,limit:30,standardHeaders:'draft-7',legacyHeaders:false});
+const wrap=fn=>(req,res,next)=>Promise.resolve(fn(req,res,next)).catch(next);
+const publicUser=u=>({id:String(u._id),name:u.name,email:u.email,phone:u.phone||'',username:u.username,role:u.role});
+const sign=u=>jwt.sign({sub:String(u._id),role:u.role},JWT_SECRET,{expiresIn:'12h'});
+const requireAuth=wrap(async(req,res,next)=>{const token=/^Bearer (.+)$/i.exec(req.headers.authorization||'')?.[1];if(!token)return res.status(401).json({message:'Login required'});let payload;try{payload=jwt.verify(token,JWT_SECRET)}catch{return res.status(401).json({message:'Invalid or expired token'})}if(!ObjectId.isValid(payload.sub))return res.status(401).json({message:'Invalid token'});const user=await users.findOne({_id:new ObjectId(payload.sub)});if(!user)return res.status(401).json({message:'Account unavailable'});req.user=user;next()});
+const admin=(req,res,next)=>req.user.role==='admin'?next():res.status(403).json({message:'Admin access required'});
+app.get('/api/health',(_,res)=>res.json({success:true,database:'connected'}));
+app.post('/api/auth/register',authLimit,wrap(async(req,res)=>{const {name,email,phone,password}=req.body||{};if(typeof name!=='string'||name.trim().length<2||typeof email!=='string'||!/^\S+@\S+\.\S+$/.test(email)||typeof phone!=='string'||!/^[0-9]{10}$/.test(phone)||typeof password!=='string'||password.length<8||password.length>128)return res.status(400).json({message:'Valid name, email, 10-digit phone and password (8–128 characters) required'});const username='student_'+crypto.randomUUID().slice(0,12);try{await users.insertOne({name:name.trim(),email:email.trim().toLowerCase(),phone,username,passwordHash:await bcrypt.hash(password,12),role:'student',created_at:new Date()})}catch(e){if(e.code===11000)return res.status(409).json({message:'Email or phone already registered'});throw e}res.status(201).json({success:true,username})}));
+app.post('/api/auth/login',authLimit,wrap(async(req,res)=>{const {email,password,role}=req.body||{};if(typeof email!=='string'||typeof password!=='string')return res.status(400).json({message:'Credentials required'});const key=email.trim();const user=await users.findOne({$or:[{email:key.toLowerCase()},{phone:key},{username:key}]});if(!user||!(await bcrypt.compare(password,user.passwordHash))||(role&&user.role!==role))return res.status(401).json({message:'Invalid credentials or role'});res.json({success:true,token:sign(user),user:publicUser(user)})}));
+app.get('/api/auth/verify',requireAuth,(req,res)=>res.json({success:true,user:publicUser(req.user)}));
+app.get('/api/results/admin/history',requireAuth,admin,wrap(async(req,res)=>{const rows=await results.find({}).sort({created_at:-1}).limit(100).toArray();res.json({results:rows.map(r=>({studentId:r.studentId,exam:r.exam,score:r.score,percentage:r.percentage,rank:r.rank??null,completedAt:r.created_at}))})}));
+app.get('/api/admin/full-analytics',requireAuth,admin,wrap(async(req,res)=>{const filter={};if(req.query.exam_id)filter.examId=String(req.query.exam_id);if(req.query.date&&/^\d{4}-\d{2}-\d{2}$/.test(req.query.date)){const d=new Date(req.query.date+'T00:00:00Z');filter.created_at={$gte:d,$lt:new Date(d.getTime()+86400000)}}const rows=await results.find(filter).sort({created_at:-1}).limit(5000).toArray();const bins=[0,0,0,0,0];const attempts=new Map();for(const r of rows){const p=Number(r.percentage)||0;bins[Math.min(4,Math.floor(Math.max(0,p)/20))]++;attempts.set(r.exam,(attempts.get(r.exam)||0)+1)}const names=new Map((await users.find({_id:{$in:rows.map(r=>r.userId).filter(Boolean)}}).project({name:1}).toArray()).map(u=>[String(u._id),u.name]));res.json({analytics:{totalAttempts:rows.length},scoreDistribution:bins.map((value,i)=>({range:`${i*20}-${i===4?100:i*20+19}%`,value})),attemptsPerExam:[...attempts].map(([exam_name,attempts])=>({exam_name,attempts})),topStudents:[...rows].sort((a,b)=>b.score-a.score).slice(0,10).map(r=>({name:names.get(String(r.userId))||r.studentId,score:r.score,exam:r.exam})),recentSubmissions:rows.slice(0,20).map(r=>({name:names.get(String(r.userId))||r.studentId,exam:r.exam,score:r.score,created_at:r.created_at}))})}));
+app.use('/api',(req,res)=>res.status(501).json({message:'This API route has not been implemented yet'}));
+app.use((err,req,res,next)=>{console.error(err);res.status(500).json({message:'Internal server error'})});
+app.listen(PORT,'0.0.0.0',()=>console.log(`Backend listening on ${PORT}`));

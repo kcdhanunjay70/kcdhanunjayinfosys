@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: kcdhanunjayinfosys
+    runtime: node
+    buildCommand: npm install --omit=dev
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: MONGODB_URI
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: PAYMENT_PHONE
+        sync: false
+      - key: PAYMENT_UPI_ID
+        sync: false

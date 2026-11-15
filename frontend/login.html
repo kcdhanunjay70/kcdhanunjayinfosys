@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="/access.css">
+</head>
+<body>
+    <main class="shell">
+        <div class="topbar">
+            <div class="brand">KCDHANUNJAY INFOSYS</div>
+            <a class="nav-link" href="/">Home</a>
+        </div>
+
+        <section class="panel">
+            <h1>Login</h1>
+            <p class="muted">Use student login for dashboard, admin login for admin access.</p>
+
+            <form class="form" id="loginForm">
+                <label>User ID, Email or Mobile
+                    <input name="email" type="text" required placeholder="student_2026, email or mobile">
+                </label>
+                <label>Password
+                    <input name="password" type="password" required placeholder="Password">
+                </label>
+                <label>Role
+                    <select name="role">
+                        <option value="student">Student</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </label>
+                <div class="button-row">
+                    <button type="submit">Login</button>
+                    <a class="btn btn-secondary" id="registerLink" href="/register.html">Register</a>
+                </div>
+                <p class="form-help">
+                    <a href="/forgot-password.html">Forgot password?</a>
+                </p>
+            </form>
+            <div id="message" class="message"></div>
+        </section>
+    </main>
+
+    <script src="/access.js"></script>
+    <script>
+        const loginParams = new URLSearchParams(window.location.search);
+        const redirectTo = loginParams.get("redirect");
+        const requestedRole = String(loginParams.get("role") || "").toLowerCase();
+        const registerLink = document.getElementById("registerLink");
+        const roleSelect = document.querySelector('select[name="role"]');
+
+        if (requestedRole === "admin" && roleSelect) {
+            roleSelect.value = "admin";
+        }
+
+        if (redirectTo) {
+            registerLink.href = `/register.html?redirect=${encodeURIComponent(redirectTo)}&message=login-required`;
+        }
+
+        if (loginParams.get("message") === "login-required") {
+            showMessage("Please register or login to start exam.", "error");
+        }
+
+        document.getElementById("loginForm").addEventListener("submit", async (event) => {
+            event.preventDefault();
+            const form = new FormData(event.currentTarget);
+
+            try {
+                const data = await api("/api/auth/login", {
+                    method: "POST",
+                    body: JSON.stringify({
+                        email: form.get("email"),
+                        password: form.get("password"),
+                        role: form.get("role"),
+                        deviceId: getDeviceId()
+                    })
+                });
+
+                store.token = data.token;
+                store.user = data.user;
+                window.location.href = redirectTo || (data.user.role === "admin" ? "/admin.html" : "/dashboard.html");
+            } catch (err) {
+                showMessage(err.message, "error");
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Access</title>
+    <link rel="stylesheet" href="/access.css">
+</head>
+<body>
+    <main class="shell">
+        <div class="topbar">
+            <div class="brand">Admin Access</div>
+            <a class="nav-link" href="/">Home</a>
+        </div>
+
+        <section class="panel">
+            <h1>Admin Panel</h1>
+            <p class="muted">Login as admin to open the dashboard.</p>
+
+            <div id="adminContent"></div>
+            <div id="message" class="message"></div>
+        </section>
+    </main>
+
+    <script src="/access.js"></script>
+    <script>
+        async function initAdmin() {
+            const content = document.getElementById("adminContent");
+
+            if (!store.token || !store.user) {
+                content.innerHTML = `
+                    <div class="button-row">
+                        <a class="btn" href="/login.html?role=admin&redirect=%2Fadmin.html">Admin Login</a>`;
+                return;
+            }
+
+            try {
+                const data = await api("/api/auth/verify");
+                const user = data.user || store.user;
+
+                if (String(user.role || "").toLowerCase() !== "admin") {
+                    showMessage("Only admin users can access this page.", "error");
+                    content.innerHTML = `<a class="btn btn-secondary" href="/dashboard.html">Student Dashboard</a>`;
+                    return;
+                }
+
+                store.user = user;
+
+                content.innerHTML = `
+                    <div class="grid">
+                        <div class="card">
+                            <h3>Welcome ${user.name}</h3>
+                            <p>${user.email}</p>
+                        </div>
+                        <div class="card">
+                            <h3>Dashboard</h3>
+                            <p>Manage questions, analytics and exam activity.</p>
+                            <a class="btn" href="/admin-dashboard.html">Open Admin Dashboard</a>
+                        </div>
+                    </div>`;
+            } catch (err) {
+                showMessage(err.message, "error");
+                content.innerHTML = `<a class="btn" href="/login.html">Login Again</a>`;
+            }
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? "")
+                .replaceAll("&", "&amp;")
+                .replaceAll("<", "&lt;")
+                .replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;")
+                .replaceAll("'", "&#039;");
+        }
+        initAdmin();
+    </script>
+</body>
+</html>
+

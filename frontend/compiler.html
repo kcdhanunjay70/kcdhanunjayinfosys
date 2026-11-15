@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Online Compiler | KCDHANUNJAY INFOSYS</title>
+  <style>
+    :root {
+      --bg: #071013;
+      --panel: #111f25;
+      --panel-2: #172b32;
+      --text: #f5fbff;
+      --muted: #a9bec7;
+      --line: rgba(255, 255, 255, 0.14);
+      --cyan: #27d7f7;
+      --green: #39ff88;
+      --yellow: #ffd447;
+      --red: #ff6b6b;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(135deg, rgba(39, 215, 247, 0.12), transparent 36%),
+        linear-gradient(315deg, rgba(57, 255, 136, 0.1), transparent 34%),
+        var(--bg);
+      color: var(--text);
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto;
+      padding: 24px 0 34px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .brand small {
+      color: var(--green);
+      font-weight: 800;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 4vw, 3.2rem);
+      line-height: 1.05;
+    }
+
+    .home-link {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .workspace {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 380px;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(17, 31, 37, 0.94);
+      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 1px;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      background: var(--panel-2);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .tab.active {
+      border-color: var(--cyan);
+      background: rgba(39, 215, 247, 0.18);
+      box-shadow: inset 0 0 0 1px rgba(39, 215, 247, 0.22);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    button {
+      font: inherit;
+    }
+
+    .btn {
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+      border-radius: 8px;
+      padding: 10px 13px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .btn.primary {
+      border-color: rgba(57, 255, 136, 0.55);
+      background: linear-gradient(135deg, #21c96d, #12a7d9);
+      color: #001015;
+    }
+
+    .btn:disabled {
+      cursor: wait;
+      opacity: 0.72;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 470px;
+      display: block;
+      border: 0;
+      outline: 0;
+      resize: vertical;
+      padding: 18px;
+      background: #071013;
+      color: #f7fbff;
+      font: 15px/1.55 Consolas, "Courier New", monospace;
+      tab-size: 2;
+    }
+
+    .side {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 16px;
+    }
+
+    .input-box textarea {
+      min-height: 150px;
+      background: #0b171b;
+    }
+
+    .result-body {
+      min-height: 290px;
+      padding: 14px;
+      background: #061013;
+    }
+
+    .status {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 0.92rem;
+      font-weight: 800;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--yellow);
+      box-shadow: 0 0 10px currentColor;
+    }
+
+    .status.ok {
+      color: var(--green);
+    }
+
+    .status.error {
+      color: var(--red);
+    }
+
+    pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-break: break-word;
+      font: 14px/1.55 Consolas, "Courier New", monospace;
+      color: #edf7fb;
+    }
+
+    iframe {
+      width: 100%;
+      min-height: 430px;
+      border: 0;
+      background: #fff;
+    }
+
+    .hint {
+      margin: 12px 0 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .workspace {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+
+      textarea {
+        min-height: 360px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <div class="topbar">
+      <div class="brand">
+        <small>KCDHANUNJAY INFOSYS</small>
+        <h1 id="pageTitle">Online Compiler</h1>
+      </div>
+      <a class="home-link" href="/">Home</a>
+    </div>
+
+    <section class="workspace" aria-label="Compiler workspace">
+      <div class="panel">
+        <div class="panel-head">
+          <div class="tabs" id="languageTabs" aria-label="Choose language"></div>
+          <div class="actions">
+            <button class="btn" type="button" id="resetBtn">Reset</button>
+            <button class="btn primary" type="button" id="runBtn">Run Code</button>
+          </div>
+        </div>
+        <textarea id="codeEditor" spellcheck="false" aria-label="Code editor"></textarea>
+      </div>
+
+      <aside class="side">
+        <div class="panel input-box" id="inputPanel">
+          <div class="panel-head">
+            <strong>Input</strong>
+          </div>
+          <textarea id="stdinEditor" spellcheck="false" placeholder="Optional input"></textarea>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head">
+            <span class="status" id="runStatus"><span class="dot"></span><span>Ready</span></span>
+            <button class="btn" type="button" id="copyBtn">Copy Output</button>
+          </div>
+          <div class="result-body" id="resultBody">
+            <pre id="outputText">Select a language and run your program.</pre>
+          </div>
+        </div>
+      </aside>
+    </section>
+    <p class="hint" id="pageHint">C, C++, Java, JavaScript and Python run on the server. HTML opens as a live preview in this page.</p>
+  </main>
+
+  <script>
+    const languages = {
+      c: {
+        label: "C",
+        title: "C Compiler",
+        code: [
+          "#include <stdio.h>",
+          "",
+          "int main() {",
+          "  printf(\"Hello from C!\\n\");",
+          "  return 0;",
+          "}",
+          "",
+        ].join("\n"),
+      },
+      cpp: {
+        label: "C++",
+        title: "C++ Compiler",
+        code: [
+          "#include <iostream>",
+          "using namespace std;",
+          "",
+          "int main() {",
+          "  cout << \"Hello from C++!\" << endl;",
+          "  return 0;",
+          "}",
+          "",
+        ].join("\n"),
+      },
+      java: {
+        label: "Java",
+        title: "Java Compiler",
+        code: [
+          "public class Main {",
+          "  public static void main(String[] args) {",
+          "    System.out.println(\"Hello from Java!\");",
+          "  }",
+          "}",
+          "",
+        ].join("\n"),
+      },
+      javascript: {
+        label: "JavaScript",
+        title: "JavaScript Compiler",
+        code: [
+          "const name = \"KCDHANUNJAY INFOSYS\";",
+          "console.log(`Hello from ${name}!`);",
+          "",
+        ].join("\n"),
+      },
+      python: {
+        label: "Python",
+        title: "Python Compiler",
+        code: [
+          "name = \"KCDHANUNJAY INFOSYS\"",
+          "print(f\"Hello from {name}!\")",
+          "",
+        ].join("\n"),
+      },
+      html: {
+        label: "HTML",
+        title: "HTML Compiler",
+        code: [
+          "<!DOCTYPE html>",
+          "<html>",
+          "<head>",
+          "  <title>HTML Preview</title>",
+          "  <style>body{font-family:Arial;padding:32px;background:#f3fbff;color:#102027}</style>",
+          "</head>",
+          "<body>",
+          "  <h1>Hello HTML!</h1>",
+          "  <p>Your page is running in the live preview.</p>",
+          "</body>",
+          "</html>",
+          "",
+        ].join("\n"),
+      },
+    };
+
+    const tabs = document.getElementById("languageTabs");
+    const codeEditor = document.getElementById("codeEditor");
+    const stdinEditor = document.getElementById("stdinEditor");
+    const inputPanel = document.getElementById("inputPanel");
+    const outputText = document.getElementById("outputText");
+    const resultBody = document.getElementById("resultBody");
+    const runBtn = document.getElementById("runBtn");
+    const resetBtn = document.getElementById("resetBtn");
+    const copyBtn = document.getElementById("copyBtn");
+    const runStatus = document.getElementById("runStatus");
+    const pageTitle = document.getElementById("pageTitle");
+
+    let activeLanguage = "c";
+
+    function setStatus(text, type = "") {
+      runStatus.className = `status ${type}`.trim();
+      runStatus.querySelector("span:last-child").textContent = text;
+    }
+
+    function setOutput(text) {
+      resultBody.innerHTML = '<pre id="outputText"></pre>';
+      document.getElementById("outputText").textContent = text;
+    }
+
+    function setPreview(html) {
+      resultBody.innerHTML = '<iframe title="HTML preview" sandbox="allow-forms allow-modals allow-pointer-lock allow-popups allow-scripts"></iframe>';
+      resultBody.querySelector("iframe").srcdoc = html;
+    }
+
+    function selectLanguage(language, keepCode = false) {
+      activeLanguage = languages[language] ? language : "c";
+      const config = languages[activeLanguage];
+      pageTitle.textContent = config.title;
+      codeEditor.value = keepCode ? codeEditor.value : config.code;
+      inputPanel.style.display = activeLanguage === "html" ? "none" : "";
+      runBtn.textContent = activeLanguage === "html" ? "Preview HTML" : "Run Code";
+      [...tabs.children].forEach((button) => {
+        button.classList.toggle("active", button.dataset.language === activeLanguage);
+      });
+      setStatus("Ready");
+      if (activeLanguage === "html") setPreview(codeEditor.value);
+      else setOutput("Ready to run.");
+      const url = new URL(window.location.href);
+      url.searchParams.set("lang", activeLanguage);
+      window.history.replaceState({}, "", url);
+    }
+
+    Object.entries(languages).forEach(([language, config]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "tab";
+      button.dataset.language = language;
+      button.textContent = config.label;
+      button.addEventListener("click", () => selectLanguage(language));
+      tabs.appendChild(button);
+    });
+
+    async function runCode() {
+      if (activeLanguage === "html") {
+        setPreview(codeEditor.value);
+        setStatus("Preview updated", "ok");
+        return;
+      }
+
+      runBtn.disabled = true;
+      setStatus("Running...");
+      setOutput("Running program...");
+
+      try {
+        const response = await fetch("/api/compiler/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            language: activeLanguage,
+            code: codeEditor.value,
+            stdin: stdinEditor.value,
+          }),
+        });
+        const data = await response.json().catch(() => ({}));
+        const stdout = data.stdout || "";
+        const stderr = data.stderr || data.message || "";
+        const body = [stdout, stderr].filter(Boolean).join(stdout && stderr ? "\\n" : "") || "(No output)";
+        setOutput(body);
+        setStatus(data.success ? "Completed" : "Failed", data.success ? "ok" : "error");
+      } catch (error) {
+        setOutput(`Compiler request failed: ${error.message}`);
+        setStatus("Failed", "error");
+      } finally {
+        runBtn.disabled = false;
+      }
+    }
+
+    runBtn.addEventListener("click", runCode);
+    resetBtn.addEventListener("click", () => selectLanguage(activeLanguage));
+    copyBtn.addEventListener("click", async () => {
+      const text = resultBody.querySelector("iframe")
+        ? codeEditor.value
+        : resultBody.textContent;
+      await navigator.clipboard.writeText(text || "");
+      setStatus("Copied", "ok");
+    });
+
+    codeEditor.addEventListener("keydown", (event) => {
+      if (event.key === "Tab") {
+        event.preventDefault();
+        const start = codeEditor.selectionStart;
+        const end = codeEditor.selectionEnd;
+        codeEditor.value = `${codeEditor.value.slice(0, start)}  ${codeEditor.value.slice(end)}`;
+        codeEditor.selectionStart = codeEditor.selectionEnd = start + 2;
+      }
+      if ((event.ctrlKey || event.metaKey) && event.key === "Enter") {
+        event.preventDefault();
+        runCode();
+      }
+    });
+
+    const initialLanguage = new URLSearchParams(window.location.search).get("lang") || "c";
+    selectLanguage(initialLanguage.toLowerCase());
+  </script>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Exam Payment - KCDhanunjay</title><link rel="stylesheet" href="/access.css"><main class="shell"><section class="panel"><h1>PhonePe Exam Payment</h1><p>Fee: <strong id="fee">₹10</strong> per exam</p><p>PhonePe: <strong id="phone"></strong> · UPI: <strong id="upi"></strong></p><p>Pay using PhonePe, then upload your screenshot and UTR. Admin approval is required before the exam unlocks.</p><form id="form" class="form"><label>Transaction ID / UTR<input name="reference" required minlength="8" maxlength="40" pattern="[A-Za-z0-9-]+"></label><label>Payment screenshot (PNG, JPG, WebP; max 2MB)<input type="file" name="screenshot" accept="image/png,image/jpeg,image/webp" required></label><button type="submit">Submit for verification</button></form><p id="message" role="status"></p><p id="paymentStatus" aria-live="polite"></p><p><a id="examLink" hidden href="/">Start approved exam</a></p><button id="check" type="button">Check approval status</button><p><a href="/">Home</a></p></section></main><script>
+const q=new URLSearchParams(location.search),type=q.get('type')||'',mock=q.get('mock')||'';
+const token=localStorage.getItem('token')||JSON.parse(localStorage.getItem('kcd_auth')||'{}').token||JSON.parse(localStorage.getItem('kcd_access')||'{}').token;
+const msg=document.getElementById('message');
+if(!token)location.href='/login.html?redirect='+encodeURIComponent(location.pathname+location.search);
+async function api(path,options={}){const r=await fetch(path,{...options,headers:{Authorization:'Bearer '+token,...(options.headers||{})}});const data=await r.json();if(!r.ok)throw Error(data.message||'Request failed');return data;}
+api('/api/payment/config?'+new URLSearchParams({type,mock})).then(d=>{document.getElementById('fee').textContent='₹'+d.amount;document.getElementById('phone').textContent=d.paymentPhone;document.getElementById('upi').textContent=d.upiId}).catch(e=>msg.textContent=e.message);
+document.getElementById('form').onsubmit=async e=>{e.preventDefault();const data=new FormData(e.target);data.set('exam_type',type);data.set('mock',mock);try{const r=await api('/api/payment/notify',{method:'POST',body:data});msg.textContent=r.message;await checkStatus();}catch(err){msg.textContent=err.message}};
+const examReturn = q.get('return');
+const safeReturn = examReturn && examReturn.startsWith('/exam.html') && !examReturn.startsWith('//') ? examReturn : '/exam.html?' + new URLSearchParams({type,mock,access:'paid'});
+const examLink = document.getElementById('examLink');
+examLink.href = safeReturn;
+async function checkStatus(){
+  try {
+    const d=await api('/api/payment/status?'+new URLSearchParams({type,mock}));
+    const state=d.isPaid?'Approved':d.payment?.status==='failed'?'Rejected':d.payment?.status==='created'?'Pending admin verification':'Not submitted';
+    document.getElementById('paymentStatus').textContent='Payment status: '+state;
+    examLink.hidden=!d.isPaid;
+    if(d.isPaid) msg.textContent='Your exam is unlocked. Select Start approved exam.';
+  } catch(e){document.getElementById('paymentStatus').textContent=e.message;}
+}
+document.getElementById('check').onclick=checkStatus;
+checkStatus();
+</script></html>

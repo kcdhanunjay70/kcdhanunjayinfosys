@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KCD Admin Dashboard</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+* { box-sizing: border-box; }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0f172a;
+    color: #e5e7eb;
+}
+header {
+    background: #020617;
+    color: #38bdf8;
+    padding: 16px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #334155;
+}
+.container {
+    padding: 18px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+}
+.card {
+    background: #1e293b;
+    border: 1px solid #334155;
+    border-radius: 10px;
+    padding: 16px;
+}
+.wide { grid-column: 1 / -1; }
+h3 { margin-top: 0; color: #facc15; }
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0;
+    border: 1px solid #475569;
+    border-radius: 8px;
+    background: #0f172a;
+    color: white;
+}
+textarea {
+    min-height: 160px;
+    resize: vertical;
+}
+button, .link-btn {
+    display: inline-block;
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    background: #22c55e;
+    color: #052e16;
+    font-weight: 800;
+    cursor: pointer;
+    text-decoration: none;
+    margin-top: 8px;
+}
+.header-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+.danger { background: #ef4444; color: white; }
+.secondary { background: #38bdf8; color: #082f49; }
+.list {
+    display: grid;
+    gap: 8px;
+    max-height: 360px;
+    overflow: auto;
+}
+.row {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px;
+}
+.row-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: flex-start;
+}
+.row-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+.row-actions button { margin-top: 0; }
+.inline-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 8px;
+    margin-bottom: 12px;
+}
+.inline-form input, .inline-form select { margin: 0; }
+.filters {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) minmax(160px, 1fr) minmax(130px, 0.7fr) minmax(150px, 0.8fr);
+    gap: 8px;
+    margin: 10px 0;
+}
+.filters input,
+.filters select { margin: 0; }
+.mini-danger {
+    background: #ef4444;
+    color: white;
+    padding: 6px 8px;
+    font-size: 12px;
+    margin-top: 0;
+}
+.mini-btn {
+    background: #38bdf8;
+    color: #082f49;
+    padding: 6px 8px;
+    font-size: 12px;
+}
+.muted { color: #94a3b8; font-size: 13px; }
+.grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+}
+.stat {
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 12px;
+    text-align: center;
+}
+.table-wrap {
+    overflow-x: auto;
+    border: 1px solid #334155;
+    border-radius: 8px;
+}
+.data-table {
+    width: 100%;
+    min-width: 1080px;
+    border-collapse: collapse;
+}
+.data-table th,
+.data-table td {
+    padding: 10px;
+    border-bottom: 1px solid #334155;
+    text-align: left;
+    vertical-align: top;
+    font-size: 13px;
+}
+.data-table th {
+    color: #f8fafc;
+    background: #0f172a;
+}
+.data-table tr:last-child td { border-bottom: 0; }
+.status-chip {
+    display: inline-block;
+    border-radius: 999px;
+    padding: 3px 8px;
+    background: #334155;
+    color: #e5e7eb;
+    font-size: 12px;
+    font-weight: 700;
+}
+.status-chip.ok {
+    background: #14532d;
+    color: #bbf7d0;
+}
+.status-chip.warn {
+    background: #713f12;
+    color: #fde68a;
+}
+.status-chip.bad {
+    background: #7f1d1d;
+    color: #fecaca;
+}
+.action-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.action-stack button,
+.action-stack .mini-btn {
+    margin-top: 0;
+}
+.photo-counts {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(72px, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+}
+.photo-counts span {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 6px;
+}
+.photo-counts strong {
+    display: block;
+    color: #f8fafc;
+    font-size: 16px;
+}
+
+
+
+.danger-link {
+    background: #ef4444;
+    color: white;
+}
+@media (max-width: 900px) {
+    .container, .grid-3 { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+<header>
+<strong>KCDHANUNJAY INFOSYS - ADMIN DASHBOARD</strong>
+<div class="header-actions">
+<button class="danger" onclick="logout()">Logout</button>
+</div>
+</header>
+<main class="container">
+<section class="card wide">
+<h3>Overview</h3>
+<div class="grid-3">
+<div class="stat"><strong id="examCount">0</strong><br/><span class="muted">Exams</span></div>
+<div class="stat"><strong id="studentCount">0</strong><br/><span class="muted">Students</span></div>
+<div class="stat"><strong id="sampleLeadCount">0</strong><br/><span class="muted">Exam Leads</span></div>
+<div class="stat"><strong id="alertCount">0</strong><br/><span class="muted">Cheating Alerts</span></div>
+</div>
+<button class="secondary" onclick="sendTestResponseMail()">Send Test Response Mail</button>
+<button class="danger" onclick="clearDashboardData()">Delete All Dashboard Logs</button>
+</section>
+<section class="card wide">
+<h3>Database Status</h3>
+<p class="muted" id="databaseStatusMessage">Loading database counts...</p>
+<div class="list" id="databaseSummary"></div>
+</section>
+<section class="card">
+<h3>Create Exam / Set Name &amp; Time</h3>
+<input id="title" placeholder="Exam Name (Example: TCS, AP EAPCET)"/>
+<input id="subject" placeholder="Subject"/>
+<input id="duration" placeholder="Exam Time / Duration (mins)" type="number"/>
+<input id="total_marks" placeholder="Questions / Total Marks" type="number"/>
+<button onclick="createExam()">Create Exam</button>
+</section>
+<section class="card">
+<h3>Upload Questions JSON</h3>
+<select id="uploadExam"></select>
+<input accept=".json,application/json" id="jsonFile" type="file"/>
+<a class="link-btn secondary" href="/api/admin/questions-template" onclick="return addAuthToTemplate(event)">Download JSON Template</a>
+<button onclick="uploadQuestions()">Upload Questions</button>
+<p class="muted">Use JSON with questions array. Keep image arrays empty when no images; add image paths when images exist.</p>
+</section>
+<section class="card">
+<h3>Type &amp; Add Single Question</h3>
+<select id="exam_id"></select>
+<input id="question" placeholder="Question"/>
+<input id="a" placeholder="Option A"/>
+<input id="b" placeholder="Option B"/>
+<input id="c" placeholder="Option C"/>
+<input id="d" placeholder="Option D"/>
+<input id="answer" placeholder="Correct Answer (A/B/C/D)"/>
+<button onclick="addQuestion()">Add Question</button>
+</section>
+<section class="card wide">
+<h3>Type &amp; Upload Many Questions</h3>
+<select id="bulkExam"></select>
+<textarea id="bulkQuestions" placeholder="Format per line: Question | Option A | Option B | Option C | Option D | Correct(A/B/C/D)"></textarea>
+<button onclick="uploadTypedQuestions()">Upload Typed Questions</button>
+<p class="muted">Example: What is HTML? | Hyper Text Markup Language | Home Tool Markup | High Text Machine | Hyperlink Text | A</p>
+</section>
+<section class="card">
+<h3>Exams</h3>
+<div class="list" id="examList"></div>
+</section>
+<section class="card wide">
+<h3>Registered Students</h3>
+<p class="muted">Create, edit, disable, reset password, or delete student accounts. Passwords are encrypted and cannot be viewed.</p>
+<div class="inline-form">
+<input id="studentName" placeholder="Student name"/>
+<input id="studentEmail" placeholder="Student email" type="email"/>
+<input id="studentPhone" placeholder="Mobile"/>
+<input id="studentPassword" placeholder="Initial password" type="password"/>
+<button onclick="createStudent()">Create Student</button>
+</div>
+<div class="list" id="students"></div>
+</section>
+<section class="card wide">
+<h3>Exam Student Leads</h3>
+<p class="muted">Home page exam students enter name, email id and mobile number first. 2025 mocks open directly; other exams wait for admin approval.</p>
+<button class="danger" onclick="clearSampleLeads()">Delete All Exam Leads</button>
+<div class="list" id="sampleLeads"></div>
+</section>
+<section class="card">
+<h3>AI Proctoring Alerts</h3>
+<button class="danger" onclick="clearAlerts()">Delete All Alerts/Risk Logs</button>
+<div class="list" id="alerts"></div>
+</section>
+<section class="card">
+<h3>User Login Logs</h3>
+<button class="danger" onclick="clearLoginLogs()">Delete All Login Logs</button>
+<div class="list" id="loginLogs"></div>
+</section>
+<section class="card wide">
+<h3>User Exam Complete Data</h3>
+<button class="danger" onclick="clearCompletions()">Delete All Completed Exam Data</button>
+<div class="list" id="examCompletions"></div>
+</section>
+</main>
+<script src="admin-dashboard.js?v=17"></script>
+<a href="/admin-payments.html" style="position:fixed;bottom:16px;right:16px;z-index:9999;background:#123;color:white;padding:12px;border-radius:8px">Payment Approvals</a><a href="/admin-results.html" style="position:fixed;bottom:70px;right:16px;z-index:9999;background:#123;color:white;padding:12px;border-radius:8px">Exam Results</a></body>
+</html>

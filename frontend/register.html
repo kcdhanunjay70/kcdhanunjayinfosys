@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Registration</title>
+    <link rel="stylesheet" href="/access.css">
+</head>
+<body>
+
+    <main class="shell">
+        <div class="topbar">
+            <div class="brand">KCDHANUNJAY INFOSYS</div>
+            <a class="nav-link" href="/">Home</a>
+        </div>
+
+        <section class="panel">
+            <h1>Student Registration</h1>
+            <p class="muted">Create your own student account with your email/mobile and your own password.</p>
+
+            <!-- ✅ FORM -->
+            <form class="form" id="registerForm">
+
+                <label>Name
+                    <input name="name" required placeholder="Student name">
+                </label>
+
+                <p>Your Student ID will be generated automatically after registration (9494705353xxx).</p>
+
+                <label>Email
+                    <input name="email" type="email" required placeholder="student@example.com">
+                </label>
+
+                <label>Phone
+                    <input name="phone" required inputmode="tel" pattern="[0-9]{10}" placeholder="10 digit mobile number">
+                </label>
+
+                <label>Password
+                    <input name="password" type="password" required minlength="8" maxlength="128" autocomplete="new-password" placeholder="Minimum 8 characters">
+                </label>
+
+                <div class="button-row">
+                    <button type="submit">Register</button>
+                    <a class="btn btn-secondary" id="loginLink" href="/login.html">Login</a>
+                </div>
+
+            </form>
+
+            <!-- ✅ MESSAGE -->
+            <div id="message" class="message"></div>
+
+        </section>
+    </main>
+
+    <!-- ✅ MAIN SCRIPT -->
+    <script src="/access.js"></script>
+
+    <!-- ✅ OPTIONAL: SHOW LOGIN REQUIRED MESSAGE -->
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const redirectTo = params.get("redirect");
+        const loginLink = document.getElementById("loginLink");
+
+        if (redirectTo) {
+            loginLink.href = `/login.html?redirect=${encodeURIComponent(redirectTo)}`;
+        }
+
+        if (params.get("message") === "login-required") {
+            const msg = document.getElementById("message");
+            if (msg) {
+                msg.innerText = "Please register or login to start exam.";
+                msg.className = "message error";
+            }
+        }
+    </script>
+
+</body>
+</html>
