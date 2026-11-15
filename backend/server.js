@@ -19,7 +19,7 @@ const mongo=new MongoClient(MONGODB_URI,{serverSelectionTimeoutMS:12000});
 await mongo.connect();
 const db=mongo.db(process.env.DB_NAME||'kcdhanunjayinfosys');
 const c=name=>db.collection(name);
-const indexes=[['users',{email:1},{unique:true}],['users',{phone:1},{unique:true,sparse:true}],['users',{username:1},{unique:true}],['exams',{type:1,mock:1}],['questions',{exam_id:1}],['sessions',{user_id:1,exam_id:1,status:1}],['results',{exam_id:1,score:-1,created_at:1}],['payments',{user_id:1,exam_type:1,mock:1}],['payments',{reference_id:1},{unique:true}],['audit',{created_at:-1}]];
+const indexes=[['users',{email:1},{unique:true}],['users',{phone:1},{unique:true,sparse:true}],['users',{username:1},{unique:true}],['exams',{type:1,mock:1}],['questions',{exam_id:1}],['sessions',{user_id:1,exam_id:1,status:1}],['results',{exam_id:1,score:-1,created_at:1}],['results',{attempt_id:1},{unique:true,partialFilterExpression:{attempt_id:{$type:'string'}}}],['payments',{user_id:1,exam_type:1,mock:1}],['payments',{reference_id:1},{unique:true}],['audit',{created_at:-1}]];
 await Promise.all(indexes.map(([name,key,options])=>c(name).createIndex(key,options||{})));
 if(ADMIN_EMAIL&&ADMIN_PASSWORD){const email=ADMIN_EMAIL.trim().toLowerCase();if(!await c('users').findOne({email})){await c('users').insertOne({name:'Administrator',email,username:`admin_${randomUUID().slice(0,8)}`,passwordHash:await bcrypt.hash(ADMIN_PASSWORD,12),role:'admin',is_active:true,created_at:new Date()});console.log('Initial admin created');}}
 const ARE_TRANSLATIONS = JSON.parse(readFileSync(new URL('./kcdi-are-translations.json', import.meta.url), 'utf8'));
@@ -80,8 +80,19 @@ app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
  if(!questions.length)return err(res,404,'This exam has no questions');
  res.json({success:true,...examPublic(exam),actualType:exam.type,questions:questions.map(({id,question,options})=>({id,question,options,optionLabels:['A','B','C','D'],...(exam.id===LEGACY_FREE_EXAM_ID?(ARE_TRANSLATIONS[question]||{}):{})}))});
 }));
-app.post('/api/exam/session',auth,asyncRoute(async(req,res)=>{const examId=clean(req.body.examId);const exam=await c('exams').findOne({id:examId});if(!exam)return err(res,404,'Exam not found');if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,req.body.examType||exam.type,req.body.mock||exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true});let s=await c('sessions').findOne({user_id:uid(req.user),exam_id:examId,status:'active',expires_at:{$gt:new Date()}});if(!s){s={id:id(),user_id:uid(req.user),exam_id:examId,answers:{},status:'active',created_at:new Date(),expires_at:new Date(Date.now()+exam.duration*60000)};await c('sessions').insertOne(s);}res.json({success:true,attemptId:s.id,expiresAt:iso(s.expires_at),answers:s.answers});}));
-app.put('/api/exam/session/:id/answers',auth,asyncRoute(async(req,res)=>{const s=await c('sessions').findOne({id:req.params.id,user_id:uid(req.user),status:'active'});if(!s||s.expires_at<=new Date())return err(res,409,'Session expired or unavailable');const validIds=new Set((await c('questions').find({exam_id:s.exam_id}).project({id:1}).toArray()).map(q=>q.id));const answers={};for(const [k,v] of Object.entries(req.body.answers||{})){if(validIds.has(k)&&/^[A-D]$/.test(v))answers[k]=v;}await c('sessions').updateOne({id:s.id,user_id:uid(req.user),status:'active'},{$set:{answers}});res.json({success:true});}));
+app.post('/api/exam/session',auth,asyncRoute(async(req,res)=>{const examId=clean(req.body.examId);const exam=await c('exams').findOne({id:examId});if(!exam)return err(res,404,'Exam not found');if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,req.body.examType||exam.type,req.body.mock||exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true});let s=await c('sessions').findOne({user_id:uid(req.user),exam_id:examId,status:'active',expires_at:{$gt:new Date()}});if(!s){s={id:id(),user_id:uid(req.user),exam_id:examId,answers:{},answer_revision:0,status:'active',created_at:new Date(),expires_at:new Date(Date.now()+exam.duration*60000)};await c('sessions').insertOne(s);}res.json({success:true,attemptId:s.id,expiresAt:iso(s.expires_at),answers:s.answers,answerRevision:s.answer_revision||0});}));
+app.put('/api/exam/session/:id/answers',auth,asyncRoute(async(req,res)=>{
+ const s=await c('sessions').findOne({id:req.params.id,user_id:uid(req.user),status:'active'});
+ if(!s||s.expires_at<=new Date())return err(res,409,'Session expired or unavailable');
+ const revision=Number(req.body?.revision);
+ if(!Number.isSafeInteger(revision)||revision<1)return err(res,400,'Valid answer revision required');
+ const validIds=new Set((await c('questions').find({exam_id:s.exam_id}).project({id:1}).toArray()).map(q=>q.id));
+ const answers={};for(const [k,v] of Object.entries(req.body.answers||{})){if(validIds.has(k)&&/^[A-D]$/.test(v))answers[k]=v;}
+ // An older in-flight request must never replace a newer answer snapshot.
+ const updated=await c('sessions').updateOne({id:s.id,user_id:uid(req.user),status:'active',expires_at:{$gt:new Date()},$or:[{answer_revision:{$lt:revision}},{answer_revision:{$exists:false}}]},{$set:{answers,answer_revision:revision}});
+ if(!updated.modifiedCount){const latest=await c('sessions').findOne({id:s.id,user_id:uid(req.user)});if(!latest||latest.status!=='active'||latest.expires_at<=new Date())return err(res,409,'Session expired or unavailable');return res.json({success:true,stale:true,answerRevision:latest.answer_revision||0});}
+ res.json({success:true,answerRevision:revision});
+}));
 app.post('/api/exam/session/:id/finish',auth,asyncRoute(async(req,res)=>{await c('sessions').updateOne({id:req.params.id,user_id:uid(req.user),status:'active'},{$set:{status:'finished'}});res.json({success:true});}));
 app.post('/api/exam/sample-leads',rate,asyncRoute(async(req,res)=>{const b=req.body||{};if(!clean(b.name)||!validEmail(clean(b.email))||!clean(b.phone))return err(res,400,'Name, email and phone required');await c('sample_leads').insertOne({id:id(),name:clean(b.name),email:clean(b.email),phone:clean(b.phone),exam_type:clean(b.exam_type||b.type),mock:clean(b.mock),sample_year:clean(b.sampleYear),access_mode:clean(b.access_mode),exam_url:clean(b.exam_url),created_at:new Date()});res.json({success:true});}));
 app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
@@ -111,16 +122,19 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
       })
     : null;
 
+  if (!s) return err(res, 409, 'Active exam session required');
+  const previous = await c('results').findOne({ attempt_id: s.id, user_id: uid(req.user) });
+  if (previous) {
+    const participants = await c('results').countDocuments({ exam_id: exam.id });
+    const rank = 1 + await c('results').countDocuments({ exam_id: exam.id, score: { $gt: previous.score } });
+    return res.json({success:true,alreadySubmitted:true,score:previous.score,total:previous.total,percentage:previous.percentage,rank,participants,risk:previous.risk,message:'Result already saved'});
+  }
+
   if (
-    !s ||
     s.status !== 'active' ||
     s.expires_at.getTime() + 60000 < Date.now()
   ) {
     return err(res, 409, 'Active exam session required');
-  }
-
-  if (await c('results').findOne({ attempt_id: s.id })) {
-    return err(res, 409, 'Attempt already submitted');
   }
 
   const qs = await c('questions').find({ exam_id: exam.id }).toArray();

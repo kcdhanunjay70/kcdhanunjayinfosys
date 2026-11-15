@@ -563,6 +563,7 @@
     <div class="status-row">
       <span class="pill" id="timer">--:--</span>
       <span class="pill" id="answeredPill">Answered 0/0</span>
+      <span class="pill" id="saveStatus" role="status" aria-live="polite">Connecting...</span>
       <button class="btn secondary" type="button" onclick="window.location.href='/'">Home</button>
       <button class="btn" type="button" id="submitTop">Submit</button>
     </div>
@@ -626,24 +627,68 @@
     let serverAttemptId = null;
     let serverExpiresAt = null;
     let autosaveTimer = null;
+    let answerRevision = 0;
+    let syncedRevision = 0;
+    let savePromise = null;
+    let submitting = false;
+    let submissionRequested = false;
+    let retrySubmitReason = "Finished";
     function examAuthToken() {
       try { return localStorage.getItem("token") || localStorage.getItem("studentToken") || JSON.parse(localStorage.getItem("kcd_auth") || "{}").token || JSON.parse(localStorage.getItem("kcd_access") || "{}").token || ""; }
       catch { return ""; }
     }
+    // The local backup is scoped to the authenticated candidate, exam and exact attempt.
+    function examBackupKey() {
+      const token = examAuthToken();
+      if (!token || !exam?.id || !serverAttemptId) return "";
+      return `kcdi_answers_v233:${exam.id}:${serverAttemptId}:${token.slice(-24)}`;
+    }
+    function readAnswerBackup() {
+      try { return JSON.parse(localStorage.getItem(examBackupKey()) || "null"); }
+      catch { return null; }
+    }
+    function backupAnswers() {
+      const key = examBackupKey();
+      if (!key) return;
+      try { localStorage.setItem(key, JSON.stringify({ revision: answerRevision, answers, expiresAt: serverExpiresAt })); }
+      catch { showSaveStatus("Local backup unavailable"); }
+    }
+    function showSaveStatus(value) { el("saveStatus").textContent = value; }
     async function saveExamAnswers() {
       if (!serverAttemptId || submitted) return;
+      if (savePromise) return savePromise.then(() => answerRevision > syncedRevision ? saveExamAnswers() : undefined);
+      if (answerRevision <= syncedRevision) return;
       const token = examAuthToken();
-      if (!token) return;
-      const response = await fetch(`/api/exam/session/${encodeURIComponent(serverAttemptId)}/answers`, {
-        method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ answers }),
-      });
-      if (!response.ok) throw new Error("Autosave failed");
+      if (!token) throw new Error("Login required to save answers");
+      const revision = answerRevision;
+      const snapshot = { ...answers };
+      showSaveStatus("Saving...");
+      savePromise = (async () => {
+        const response = await fetch(`/api/exam/session/${encodeURIComponent(serverAttemptId)}/answers`, {
+          method: "PUT", headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ answers: snapshot, revision }),
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.success === false) throw new Error(data.message || "Autosave failed");
+        syncedRevision = Math.max(syncedRevision, Number(data.answerRevision) || revision);
+        if (data.stale && syncedRevision > answerRevision) throw new Error("A newer answer revision exists on server. Refresh to reconcile.");
+        if (answerRevision <= syncedRevision) {
+          const key = examBackupKey();
+          if (key) localStorage.removeItem(key);
+          showSaveStatus("All answers saved");
+        }
+      })();
+      try { await savePromise; }
+      catch (error) { showSaveStatus("Not synced - retrying"); throw error; }
+      finally { savePromise = null; }
     }
     function queueExamAutosave() {
-      if (!serverAttemptId) return;
+      if (!serverAttemptId || submitted || submitting) return;
+      answerRevision += 1;
+      backupAnswers();
+      showSaveStatus(navigator.onLine ? "Waiting to save..." : "Offline - saved locally");
       clearTimeout(autosaveTimer);
-      autosaveTimer = setTimeout(() => saveExamAnswers().catch(() => { el("message").textContent = "Connection lost: answers not yet saved. Please reconnect."; }), 700);
+      autosaveTimer = setTimeout(() => saveExamAnswers().catch(() => {}), 700);
     }
     async function restoreExamSession() {
       if (!examAuthToken() || !exam?.id) return;
@@ -653,7 +698,17 @@
       serverAttemptId = data.attemptId;
       serverExpiresAt = Date.parse(data.expiresAt);
       if (!Number.isFinite(serverExpiresAt)) throw new Error("Invalid server deadline");
-      for (const [key, value] of Object.entries(data.answers || {})) if (/^[A-D]$/.test(value)) answers[key] = value;
+      syncedRevision = Number(data.answerRevision) || 0;
+      answerRevision = syncedRevision;
+      const validIds = new Set(questions.map(q => q.id));
+      for (const [key, value] of Object.entries(data.answers || {})) if (validIds.has(key) && /^[A-D]$/.test(value)) answers[key] = value;
+      const backup = readAnswerBackup();
+      if (backup && Number(backup.expiresAt) === serverExpiresAt && Number(backup.revision) > syncedRevision) {
+        for (const [key, value] of Object.entries(backup.answers || {})) if (validIds.has(key) && /^[A-D]$/.test(value)) answers[key] = value;
+        answerRevision = Number(backup.revision);
+        showSaveStatus("Recovered local answers");
+        saveExamAnswers().catch(() => {});
+      } else showSaveStatus("All answers saved");
       remainingSeconds = Math.max(0, Math.ceil((serverExpiresAt - Date.now()) / 1000));
     }
 
@@ -1144,7 +1199,8 @@
 
     function startTimer(durationMinutes = examDurationMinutes) {
       if (!examUnlocked) return;
-      if (!remainingSeconds) remainingSeconds = Math.max(1, Number(durationMinutes || 60)) * 60;
+      if (!serverExpiresAt && !remainingSeconds) remainingSeconds = Math.max(1, Number(durationMinutes || 60)) * 60;
+      if (serverExpiresAt && serverExpiresAt <= Date.now()) { submitExam("Time completed"); return; }
       el("timer").textContent = formatTime(remainingSeconds);
       clearInterval(timerHandle);
       timerHandle = setInterval(() => {
@@ -1223,15 +1279,24 @@
     }
 
     async function submitExam(reason = "Finished") {
-      if (!questions.length || submitted) return;
+      if (!questions.length || submitted || submitting) return;
+      submitting = true;
+      submissionRequested = true;
+      retrySubmitReason = reason;
+      clearTimeout(autosaveTimer);
       if (!isValidStudentDetails(currentStudentDetails())) {
+        submitting = false;
         updateExamGate();
         return;
       }
       if (serverAttemptId) {
-        try { await saveExamAnswers(); } catch { el("message").textContent = "Warning: last answers could not be saved to server."; }
+        try { await saveExamAnswers(); } catch {
+          submitting = false;
+          el("message").textContent = "Answers not synced. Reconnect and press Submit again.";
+          showSaveStatus("Submission waiting for sync");
+          return;
+        }
       }
-      submitted = true;
       clearInterval(timerHandle);
       el("submitTop").disabled = true;
       el("submitSide").disabled = true;
@@ -1285,6 +1350,10 @@
         });
         const data = await response.json().catch(() => ({}));
         if (response.ok && data.success !== false) {
+          submitted = true;
+          const key = examBackupKey();
+          if (key) localStorage.removeItem(key);
+          showSaveStatus("Result saved");
           if (serverAttemptId) {
             fetch(`/api/exam/session/${encodeURIComponent(serverAttemptId)}/finish`, { method: "POST", headers: { Authorization: `Bearer ${examAuthToken()}` } }).catch(() => {});
           }
@@ -1316,18 +1385,25 @@
             el("resultBox").innerHTML = resultMarkup;
           }
         } else {
-          el("resultBox").innerHTML += `<span class="result-line">${escapeHtml(data.message || "Server did not confirm this result. Contact the administrator before attempting the exam again.")}</span>`;
+          el("resultBox").innerHTML += `<span class="result-line">${escapeHtml(data.message || "Server did not confirm this result. Please retry submission.")}</span>`;
         }
       } catch {
-        // Score is already shown locally; network or mail failures should not hide the result.
-        el("resultBox").innerHTML += `<span class="result-line">Server could not confirm the result. Contact the administrator before attempting the exam again.</span>`;
+        el("resultBox").innerHTML += `<span class="result-line">Server confirmation unavailable. Retry when connected; do not start another attempt.</span>`;
+      } finally {
+        submitting = false;
+        if (!submitted) {
+          el("submitTop").disabled = false;
+          el("submitSide").disabled = false;
+          el("submitTop").textContent = "Retry Submit";
+          el("submitSide").textContent = "Retry Submit";
+        }
       }
     }
 
     document.addEventListener("click", (event) => {
       const option = event.target.closest(".option");
       if (option) {
-        if (!examUnlocked || option.disabled) {
+        if (!examUnlocked || option.disabled || submissionRequested) {
           updateExamGate();
           return;
         }
@@ -1357,8 +1433,12 @@
       }
     });
 
-    el("submitTop").addEventListener("click", () => submitExam());
-    el("submitSide").addEventListener("click", () => submitExam());
+    window.addEventListener("online", () => {
+      if (!submitted && serverAttemptId) saveExamAnswers().catch(() => {});
+    });
+    window.addEventListener("offline", () => { if (!submitted) showSaveStatus("Offline - saved locally"); });
+    el("submitTop").addEventListener("click", () => submitExam(submissionRequested ? retrySubmitReason : "Finished"));
+    el("submitSide").addEventListener("click", () => submitExam(submissionRequested ? retrySubmitReason : "Finished"));
     applyStudentDetails();
     bindStudentLeadAutosave();
     updateExamGate();
