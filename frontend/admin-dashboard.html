@@ -247,6 +247,8 @@ button, .link-btn {
 <input id="subject" placeholder="Subject"/>
 <input id="duration" placeholder="Exam Time / Duration (mins)" type="number"/>
 <input id="total_marks" placeholder="Questions / Total Marks" type="number"/>
+<label for="newExamAccess">Exam Access</label>
+<select id="newExamAccess"><option value="paid">PAID — Payment approval required</option><option value="free">FREE — All registered students</option></select>
 <button onclick="createExam()">Create Exam</button>
 </section>
 <section class="card">
@@ -313,6 +315,6 @@ button, .link-btn {
 <div class="list" id="examCompletions"></div>
 </section>
 </main>
-<script src="admin-dashboard.js?v=17"></script>
+<script src="admin-dashboard.js?v=18"></script>
 <a href="/admin-payments.html" style="position:fixed;bottom:16px;right:16px;z-index:9999;background:#123;color:white;padding:12px;border-radius:8px">Payment Approvals</a><a href="/admin-results.html" style="position:fixed;bottom:70px;right:16px;z-index:9999;background:#123;color:white;padding:12px;border-radius:8px">Exam Results</a></body>
 </html>

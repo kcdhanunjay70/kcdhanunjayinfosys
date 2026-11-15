@@ -65,7 +65,8 @@ async function createExam() {
                 title: document.getElementById("title").value,
                 subject: document.getElementById("subject").value,
                 duration: document.getElementById("duration").value,
-                total_marks: document.getElementById("total_marks").value || 0
+                total_marks: document.getElementById("total_marks").value || 0,
+                access_type: document.getElementById("newExamAccess").value
             })
         });
         alert("Exam created");
@@ -181,11 +182,28 @@ async function loadExams() {
         <div class="row">
             <strong>${escapeHtml(e.title)}</strong>
             <div class="muted">ID: ${escapeHtml(e.id)} | Type: ${escapeHtml(e.type || "-")} | Subject: ${escapeHtml(e.subject || "-")} | Duration: ${escapeHtml(e.duration)} mins | Questions: ${escapeHtml(e.question_count || 0)}</div>
+            <div class="muted">Access: <strong>${e.access_type === 'free' ? 'FREE' : 'PAID'}</strong></div>
             <div class="row-actions">
-                <a class="mini-btn" href="/exam.html?type=${encodeURIComponent(e.type || "")}" target="_blank">Open Free as Admin</a>
+                <select aria-label="Access type for ${escapeAttribute(e.title)}" id="access-${safeId(e.id)}" style="max-width:220px"><option value="paid" ${e.access_type !== 'free' ? 'selected' : ''}>PAID</option><option value="free" ${e.access_type === 'free' ? 'selected' : ''}>FREE</option></select>
+                <button class="mini-btn" onclick="saveExamAccess(decodeURIComponent('${safeId(e.id)}'))">Save Access</button>
+                <a class="mini-btn" href="/exam.html?access=${e.access_type === 'free' ? 'free' : 'paid'}&exam_id=${encodeURIComponent(e.id)}&type=${encodeURIComponent(e.type || '')}" target="_blank">Open Exam</a>
             </div>
         </div>
     `).join("");
+}
+
+async function saveExamAccess(examId) {
+    const access_type = document.getElementById(`access-${safeId(examId)}`).value;
+    if (!confirm(`Set this exam to ${access_type.toUpperCase()}?`)) return;
+    try {
+        await api(`/api/admin/exams/${encodeURIComponent(examId)}/access`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ access_type })
+        });
+        await loadExams();
+        alert(`Exam access updated to ${access_type.toUpperCase()}`);
+    } catch (err) { alert(err.message); }
 }
 
 async function loadDatabaseSummary() {

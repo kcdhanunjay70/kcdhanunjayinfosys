@@ -23,7 +23,7 @@
 <a class="tile" href="/my-payments.html"><strong>💳 My Payments</strong><span>View your payment information and status.</span></a>
 <a class="tile" href="/#contact"><strong>✉️ Contact</strong><span>Reach the institute for help and support.</span></a>
 </div></section>
-<section class="section" id="free-are-exam"><h2>🎓 KCDI ARE Exam — FREE</h2><p>For all registered students • Aptitude, Reasoning &amp; General English • 53 MCQs • 25 minutes • No payment required.</p><a class="tile" style="min-height:auto;max-width:460px" href="/exam.html?access=free&amp;exam_id=1abd5f62-531d-4d29-9881-a28c92a515b3&amp;type=aptitude%20reasoning%20english"><strong>Start Free KCDI ARE Exam →</strong><span>Login required. Your score and rank will be saved in My Results.</span></a></section>
+<section class="section" id="available-exams"><h2>🎓 Available Exams — FREE / PAID</h2><p class="muted">Exam access is set by the administrator. All exams require student login.</p><div class="grid" id="availableExamList"><p>Loading exams…</p></div></section>
 <section class="section" id="my-results"><h2>My Results & Rankings</h2><p class="muted">Your latest 100 exam submissions, loaded securely from the database.</p><button class="logout" type="button" id="refreshResults">Refresh Results</button><p id="resultsStatus" role="status">Loading your results…</p><div class="results-wrap"><table class="results-table"><thead><tr><th>Exam</th><th>Marks</th><th>Percentage</th><th>Rank</th><th>Completed</th></tr></thead><tbody id="myResultsRows"></tbody></table></div></section>
 </main></div>
 <div id="checking" role="status" style="max-width:500px;margin:20vh auto;padding:24px;text-align:center">Checking your student session…</div>
@@ -51,6 +51,24 @@ async function loadMyResults(){
   status.textContent=results.length?`${results.length} result(s) loaded`:'No exam results found for this account yet.';
  }catch(error){status.textContent=error.message;}
 }
+async function loadAvailableExams(){
+ const list=document.getElementById('availableExamList');
+ try{
+  const response=await fetch('/api/exams/catalog',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+  const data=await response.json();if(!response.ok)throw new Error(data.message||'Unable to load exams');
+  list.replaceChildren();
+  for(const exam of (data.exams||[])){
+   const link=document.createElement('a');link.className='tile';
+   const query=new URLSearchParams({access:exam.access_type==='free'?'free':'paid',exam_id:exam.id,type:exam.type||''});
+   if(exam.mock)query.set('mock',exam.mock);
+   link.href='/exam.html?'+query.toString();
+   const title=document.createElement('strong');title.textContent=exam.title+' — '+(exam.access_type==='free'?'FREE':'PAID');
+   const description=document.createElement('span');description.textContent=`${exam.question_count||0} questions • ${exam.duration||0} minutes • ${exam.access_type==='free'?'Start without payment':'Payment approval required'}`;
+   link.append(title,description);list.appendChild(link);
+  }
+  if(!list.children.length)list.textContent='No exams available yet.';
+ }catch(error){list.textContent=error.message;}
+}
 document.getElementById('refreshResults').addEventListener('click',loadMyResults);
 
 fetch('/api/auth/verify',{headers:{Authorization:'Bearer '+token},cache:'no-store'})
@@ -69,6 +87,7 @@ document.getElementById('studentEmail').textContent=user.email||'';
 document.getElementById('portal').hidden=false;
 checking.classList.add('hidden');
 loadMyResults();
+loadAvailableExams();
 })
 .catch(()=>goLogin());
 })();

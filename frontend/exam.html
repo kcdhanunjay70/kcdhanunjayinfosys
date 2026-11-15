@@ -646,7 +646,7 @@
       autosaveTimer = setTimeout(() => saveExamAnswers().catch(() => { el("message").textContent = "Connection lost: answers not yet saved. Please reconnect."; }), 700);
     }
     async function restoreExamSession() {
-      if (requestedAccess === "sample" || requestedAccess === "public" || !examAuthToken() || !exam?.id) return;
+      if (!examAuthToken() || !exam?.id) return;
       const response = await fetch("/api/exam/session", { method: "POST", headers: { "Content-Type": "application/json", Authorization: `Bearer ${examAuthToken()}` }, body: JSON.stringify({ examId: exam.id, examType: requestedType, mock: requestedMock }) });
       if (!response.ok) throw new Error("Could not start or resume server exam session");
       const data = await response.json();
@@ -1163,19 +1163,20 @@
         access: requestedAccess,
       });
       if (requestedMock) query.set("mock", requestedMock);
-      if (requestedAccess === "free") query.set("exam_id", params.get("exam_id") || "");
+      if (params.get("exam_id")) query.set("exam_id", params.get("exam_id"));
       if (requestedYear) query.set("sampleYear", requestedYear);
 
       const examToken = localStorage.getItem("token") || localStorage.getItem("studentToken") || (() => { try { return JSON.parse(localStorage.getItem("kcd_auth") || "{}").token || JSON.parse(localStorage.getItem("kcd_access") || "{}").token; } catch { return null; } })();
-      if (requestedAccess === "free" && !examToken) { location.replace("/login.html"); return; }
+      if (!examToken) { location.replace("/login.html"); return; }
       const response = await fetch(`/api/exam/get-active?${query.toString()}`, {
         headers: examToken ? { Authorization: `Bearer ${examToken}` } : {},
       });
       const data = await response.json().catch(() => ({}));
+      if (response.status === 401) { location.replace("/login.html"); return; }
       if (response.status === 403 && data.paymentRequired) {
         const paymentUrl = new URL("/payment.html", location.origin);
-        paymentUrl.searchParams.set("type", requestedType);
-        if (requestedMock) paymentUrl.searchParams.set("mock", requestedMock);
+        paymentUrl.searchParams.set("type", data.exam?.type || requestedType);
+        if (data.exam?.mock || requestedMock) paymentUrl.searchParams.set("mock", data.exam?.mock || requestedMock);
         paymentUrl.searchParams.set("return", location.pathname + location.search);
         location.assign(paymentUrl.toString());
         return;
