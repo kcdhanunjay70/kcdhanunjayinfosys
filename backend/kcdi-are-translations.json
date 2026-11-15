@@ -1,0 +1,1433 @@
+{
+  "What is 25% of 240?": {
+    "questionTranslations": {
+      "en": "What is 25% of 240?",
+      "te": "240 లో 25% ఎంత?",
+      "hi": "240 का 25% कितना है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "80",
+        "50",
+        "60",
+        "40"
+      ],
+      "te": [
+        "80",
+        "50",
+        "60",
+        "40"
+      ],
+      "hi": [
+        "80",
+        "50",
+        "60",
+        "40"
+      ]
+    }
+  },
+  "A train travels 180 km in 3 hours. What is its average speed?": {
+    "questionTranslations": {
+      "en": "A train travels 180 km in 3 hours. What is its average speed?",
+      "te": "ఒక రైలు 3 గంటల్లో 180 కి.మీ. ప్రయాణిస్తుంది. దాని సగటు వేగం ఎంత?",
+      "hi": "एक ट्रेन 3 घंटे में 180 किमी चलती है। उसकी औसत गति क्या है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "90",
+        "70",
+        "50",
+        "60"
+      ],
+      "te": [
+        "90",
+        "70",
+        "50",
+        "60"
+      ],
+      "hi": [
+        "90",
+        "70",
+        "50",
+        "60"
+      ]
+    }
+  },
+  "Find the simple interest on Rs. 5,000 at 8% per annum for 2 years.": {
+    "questionTranslations": {
+      "en": "Find the simple interest on Rs. 5,000 at 8% per annum for 2 years.",
+      "te": "రూ. 5,000 పై సంవత్సరానికి 8% వడ్డీ రేటుతో 2 సంవత్సరాల సాధారణ వడ్డీ ఎంత?",
+      "hi": "रु. 5,000 पर 8% वार्षिक दर से 2 वर्षों का साधारण ब्याज कितना है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "Rs. 400",
+        "Rs. 600",
+        "Rs. 800",
+        "Rs. 1,000"
+      ],
+      "te": [
+        "Rs. 400",
+        "Rs. 600",
+        "Rs. 800",
+        "Rs. 1,000"
+      ],
+      "hi": [
+        "Rs. 400",
+        "Rs. 600",
+        "Rs. 800",
+        "Rs. 1,000"
+      ]
+    }
+  },
+  "The ratio of boys to girls is 3:2. If there are 30 students, how many are girls?": {
+    "questionTranslations": {
+      "en": "The ratio of boys to girls is 3:2. If there are 30 students, how many are girls?",
+      "te": "అబ్బాయిలు, అమ్మాయిల నిష్పత్తి 3:2. మొత్తం 30 మంది విద్యార్థులు ఉంటే అమ్మాయిలు ఎంతమంది?",
+      "hi": "लड़कों और लड़कियों का अनुपात 3:2 है। कुल 30 विद्यार्थी हों तो लड़कियाँ कितनी हैं?"
+    },
+    "optionTranslations": {
+      "en": [
+        "12",
+        "10",
+        "18",
+        "15"
+      ],
+      "te": [
+        "12",
+        "10",
+        "18",
+        "15"
+      ],
+      "hi": [
+        "12",
+        "10",
+        "18",
+        "15"
+      ]
+    }
+  },
+  "What is the average of 12, 18, 24 and 30?": {
+    "questionTranslations": {
+      "en": "What is the average of 12, 18, 24 and 30?",
+      "te": "12, 18, 24, 30 సంఖ్యల సగటు ఎంత?",
+      "hi": "12, 18, 24 और 30 का औसत कितना है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "24",
+        "18",
+        "21",
+        "20"
+      ],
+      "te": [
+        "24",
+        "18",
+        "21",
+        "20"
+      ],
+      "hi": [
+        "24",
+        "18",
+        "21",
+        "20"
+      ]
+    }
+  },
+  "A product costing Rs. 800 is sold for Rs. 1,000. What is the profit percentage?": {
+    "questionTranslations": {
+      "en": "A product costing Rs. 800 is sold for Rs. 1,000. What is the profit percentage?",
+      "te": "రూ. 800 ఖరీదైన వస్తువును రూ. 1,000కు అమ్మారు. లాభ శాతం ఎంత?",
+      "hi": "रु. 800 की वस्तु रु. 1,000 में बेची गई। लाभ प्रतिशत कितना है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "20",
+        "40",
+        "25",
+        "30"
+      ],
+      "te": [
+        "20",
+        "40",
+        "25",
+        "30"
+      ],
+      "hi": [
+        "20",
+        "40",
+        "25",
+        "30"
+      ]
+    }
+  },
+  "If 6 workers complete a task in 10 days, how many days will 12 equally efficient workers take?": {
+    "questionTranslations": {
+      "en": "If 6 workers complete a task in 10 days, how many days will 12 equally efficient workers take?",
+      "te": "6 మంది కార్మికులు ఒక పనిని 10 రోజుల్లో పూర్తి చేస్తే, అదే సామర్థ్యం ఉన్న 12 మంది ఎన్ని రోజుల్లో పూర్తి చేస్తారు?",
+      "hi": "6 मजदूर एक काम 10 दिनों में करते हैं। समान दक्षता वाले 12 मजदूर कितने दिनों में करेंगे?"
+    },
+    "optionTranslations": {
+      "en": [
+        "6",
+        "5",
+        "4",
+        "8"
+      ],
+      "te": [
+        "6",
+        "5",
+        "4",
+        "8"
+      ],
+      "hi": [
+        "6",
+        "5",
+        "4",
+        "8"
+      ]
+    }
+  },
+  "Solve: 3x + 7 = 22.": {
+    "questionTranslations": {
+      "en": "Solve: 3x + 7 = 22.",
+      "te": "సమీకరణాన్ని సాధించండి: 3x + 7 = 22.",
+      "hi": "हल कीजिए: 3x + 7 = 22."
+    },
+    "optionTranslations": {
+      "en": [
+        "4",
+        "6",
+        "3",
+        "5"
+      ],
+      "te": [
+        "4",
+        "6",
+        "3",
+        "5"
+      ],
+      "hi": [
+        "4",
+        "6",
+        "3",
+        "5"
+      ]
+    }
+  },
+  "What is the least common multiple (LCM) of 12 and 18?": {
+    "questionTranslations": {
+      "en": "What is the least common multiple (LCM) of 12 and 18?",
+      "te": "12 మరియు 18 ల కనిష్ఠ సామాన్య గుణిజం (LCM) ఎంత?",
+      "hi": "12 और 18 का लघुत्तम समापवर्त्य (LCM) क्या है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "72",
+        "36",
+        "24",
+        "30"
+      ],
+      "te": [
+        "72",
+        "36",
+        "24",
+        "30"
+      ],
+      "hi": [
+        "72",
+        "36",
+        "24",
+        "30"
+      ]
+    }
+  },
+  "What is the greatest common divisor (HCF) of 24 and 36?": {
+    "questionTranslations": {
+      "en": "What is the greatest common divisor (HCF) of 24 and 36?",
+      "te": "24 మరియు 36 ల గరిష్ఠ సామాన్య భాజకం (HCF) ఎంత?",
+      "hi": "24 और 36 का महत्तम समापवर्तक (HCF) क्या है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "18",
+        "12",
+        "6",
+        "8"
+      ],
+      "te": [
+        "18",
+        "12",
+        "6",
+        "8"
+      ],
+      "hi": [
+        "18",
+        "12",
+        "6",
+        "8"
+      ]
+    }
+  },
+  "A shop offers a 10% discount on Rs. 1,500. What is the selling price?": {
+    "questionTranslations": {
+      "en": "A shop offers a 10% discount on Rs. 1,500. What is the selling price?",
+      "te": "రూ. 1,500 వస్తువుపై దుకాణం 10% తగ్గింపు ఇస్తే అమ్మకపు ధర ఎంత?",
+      "hi": "रु. 1,500 की वस्तु पर 10% छूट मिले तो विक्रय मूल्य क्या होगा?"
+    },
+    "optionTranslations": {
+      "en": [
+        "Rs. 1,400",
+        "Rs. 1,350",
+        "Rs. 1,250",
+        "Rs. 1,300"
+      ],
+      "te": [
+        "Rs. 1,400",
+        "Rs. 1,350",
+        "Rs. 1,250",
+        "Rs. 1,300"
+      ],
+      "hi": [
+        "Rs. 1,400",
+        "Rs. 1,350",
+        "Rs. 1,250",
+        "Rs. 1,300"
+      ]
+    }
+  },
+  "What is the area of a rectangle 15 cm long and 8 cm wide?": {
+    "questionTranslations": {
+      "en": "What is the area of a rectangle 15 cm long and 8 cm wide?",
+      "te": "పొడవు 15 సెం.మీ., వెడల్పు 8 సెం.మీ. ఉన్న దీర్ఘచతురస్ర వైశాల్యం ఎంత?",
+      "hi": "15 सेमी लंबाई और 8 सेमी चौड़ाई वाले आयत का क्षेत्रफल कितना है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "130 sq cm",
+        "100 sq cm",
+        "110 sq cm",
+        "120 sq cm"
+      ],
+      "te": [
+        "130 sq cm",
+        "100 sq cm",
+        "110 sq cm",
+        "120 sq cm"
+      ],
+      "hi": [
+        "130 sq cm",
+        "100 sq cm",
+        "110 sq cm",
+        "120 sq cm"
+      ]
+    }
+  },
+  "A number increases from 80 to 100. What is the percentage increase?": {
+    "questionTranslations": {
+      "en": "A number increases from 80 to 100. What is the percentage increase?",
+      "te": "ఒక సంఖ్య 80 నుంచి 100కు పెరిగింది. పెరుగుదల శాతం ఎంత?",
+      "hi": "एक संख्या 80 से बढ़कर 100 हुई। प्रतिशत वृद्धि कितनी है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "40",
+        "25",
+        "30",
+        "20"
+      ],
+      "te": [
+        "40",
+        "25",
+        "30",
+        "20"
+      ],
+      "hi": [
+        "40",
+        "25",
+        "30",
+        "20"
+      ]
+    }
+  },
+  "If 2/5 of a number is 36, what is the number?": {
+    "questionTranslations": {
+      "en": "If 2/5 of a number is 36, what is the number?",
+      "te": "ఒక సంఖ్యలో 2/5 భాగం 36 అయితే ఆ సంఖ్య ఎంత?",
+      "hi": "किसी संख्या का 2/5 भाग 36 है। संख्या क्या है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "72",
+        "100",
+        "80",
+        "90"
+      ],
+      "te": [
+        "72",
+        "100",
+        "80",
+        "90"
+      ],
+      "hi": [
+        "72",
+        "100",
+        "80",
+        "90"
+      ]
+    }
+  },
+  "What is the compound interest on Rs. 1,000 at 10% per annum for 2 years, compounded annually?": {
+    "questionTranslations": {
+      "en": "What is the compound interest on Rs. 1,000 at 10% per annum for 2 years, compounded annually?",
+      "te": "రూ. 1,000 పై సంవత్సరానికి 10% చక్రవడ్డీ రేటుతో 2 సంవత్సరాలకు (ఏటా కలిపితే) వడ్డీ ఎంత?",
+      "hi": "रु. 1,000 पर 10% वार्षिक दर से 2 वर्षों का चक्रवृद्धि ब्याज कितना है (वार्षिक संयोजन)?"
+    },
+    "optionTranslations": {
+      "en": [
+        "Rs. 200",
+        "Rs. 121",
+        "Rs. 210",
+        "Rs. 220"
+      ],
+      "te": [
+        "Rs. 200",
+        "Rs. 121",
+        "Rs. 210",
+        "Rs. 220"
+      ],
+      "hi": [
+        "Rs. 200",
+        "Rs. 121",
+        "Rs. 210",
+        "Rs. 220"
+      ]
+    }
+  },
+  "A car covers 150 km at 50 km/h. How long does it take?": {
+    "questionTranslations": {
+      "en": "A car covers 150 km at 50 km/h. How long does it take?",
+      "te": "ఒక కారు గంటకు 50 కి.మీ. వేగంతో 150 కి.మీ. ప్రయాణించడానికి ఎంత సమయం పడుతుంది?",
+      "hi": "एक कार 50 किमी/घंटा की गति से 150 किमी तय करती है। कितना समय लगेगा?"
+    },
+    "optionTranslations": {
+      "en": [
+        "4 hours",
+        "2 hours",
+        "2.5 hours",
+        "3 hours"
+      ],
+      "te": [
+        "4 hours",
+        "2 hours",
+        "2.5 hours",
+        "3 hours"
+      ],
+      "hi": [
+        "4 hours",
+        "2 hours",
+        "2.5 hours",
+        "3 hours"
+      ]
+    }
+  },
+  "How many different ways can 3 distinct books be arranged on a shelf?": {
+    "questionTranslations": {
+      "en": "How many different ways can 3 distinct books be arranged on a shelf?",
+      "te": "వేర్వేరు 3 పుస్తకాలను ఒక అరలో ఎన్ని విధాలుగా అమర్చవచ్చు?",
+      "hi": "तीन अलग-अलग पुस्तकों को शेल्फ पर कितने तरीकों से सजाया जा सकता है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "3",
+        "12",
+        "9",
+        "6"
+      ],
+      "te": [
+        "3",
+        "12",
+        "9",
+        "6"
+      ],
+      "hi": [
+        "3",
+        "12",
+        "9",
+        "6"
+      ]
+    }
+  },
+  "What is the probability of getting an even number on one roll of a fair six-sided die?": {
+    "questionTranslations": {
+      "en": "What is the probability of getting an even number on one roll of a fair six-sided die?",
+      "te": "సమాన అవకాశాలున్న ఆరు ముఖాల పాచికను ఒకసారి విసిరితే సరి సంఖ్య వచ్చే సంభావ్యత ఎంత?",
+      "hi": "निष्पक्ष छह-मुखी पासे को एक बार फेंकने पर सम संख्या आने की प्रायिकता क्या है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "1/2",
+        "1/3",
+        "1/6",
+        "2/3"
+      ],
+      "te": [
+        "1/2",
+        "1/3",
+        "1/6",
+        "2/3"
+      ],
+      "hi": [
+        "1/2",
+        "1/3",
+        "1/6",
+        "2/3"
+      ]
+    }
+  },
+  "Find the next number: 2, 4, 8, 16, __.": {
+    "questionTranslations": {
+      "en": "Find the next number: 2, 4, 8, 16, __.",
+      "te": "తర్వాతి సంఖ్యను కనుగొనండి: 2, 4, 8, 16, __.",
+      "hi": "अगली संख्या ज्ञात करें: 2, 4, 8, 16, __."
+    },
+    "optionTranslations": {
+      "en": [
+        "32",
+        "36",
+        "30",
+        "24"
+      ],
+      "te": [
+        "32",
+        "36",
+        "30",
+        "24"
+      ],
+      "hi": [
+        "32",
+        "36",
+        "30",
+        "24"
+      ]
+    }
+  },
+  "Find the next number: 3, 6, 11, 18, 27, __.": {
+    "questionTranslations": {
+      "en": "Find the next number: 3, 6, 11, 18, 27, __.",
+      "te": "తర్వాతి సంఖ్యను కనుగొనండి: 3, 6, 11, 18, 27, __.",
+      "hi": "अगली संख्या ज्ञात करें: 3, 6, 11, 18, 27, __."
+    },
+    "optionTranslations": {
+      "en": [
+        "36",
+        "42",
+        "38",
+        "40"
+      ],
+      "te": [
+        "36",
+        "42",
+        "38",
+        "40"
+      ],
+      "hi": [
+        "36",
+        "42",
+        "38",
+        "40"
+      ]
+    }
+  },
+  "Which one is the odd one out?": {
+    "questionTranslations": {
+      "en": "Which one is the odd one out?",
+      "te": "మిగతావాటికి భిన్నమైనది ఏది?",
+      "hi": "इनमें से अलग कौन है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "Carrot",
+        "Mango",
+        "Apple",
+        "Banana"
+      ],
+      "te": [
+        "క్యారెట్",
+        "మామిడి",
+        "ఆపిల్",
+        "అరటిపండు"
+      ],
+      "hi": [
+        "गाजर",
+        "आम",
+        "सेब",
+        "केला"
+      ]
+    }
+  },
+  "If CAT is coded as DBU, how is DOG coded?": {
+    "questionTranslations": {
+      "en": "If CAT is coded as DBU, how is DOG coded?",
+      "te": "CAT ను DBU గా సంకేతీకరిస్తే, DOG ను ఎలా సంకేతీకరిస్తారు?",
+      "hi": "यदि CAT को DBU लिखा जाए तो DOG को क्या लिखेंगे?"
+    },
+    "optionTranslations": {
+      "en": [
+        "FQI",
+        "CNG",
+        "EOG",
+        "EPH"
+      ],
+      "te": [
+        "FQI",
+        "CNG",
+        "EOG",
+        "EPH"
+      ],
+      "hi": [
+        "FQI",
+        "CNG",
+        "EOG",
+        "EPH"
+      ]
+    }
+  },
+  "A person faces north, turns right, then turns right again. Which direction are they facing?": {
+    "questionTranslations": {
+      "en": "A person faces north, turns right, then turns right again. Which direction are they facing?",
+      "te": "ఒక వ్యక్తి ఉత్తరానికి ఎదురుగా నిలబడి కుడివైపు, మళ్లీ కుడివైపు తిరిగాడు. ఇప్పుడు ఏ దిశకు ఎదురుగా ఉన్నాడు?",
+      "hi": "एक व्यक्ति उत्तर की ओर देख रहा है, फिर दाएँ और फिर दोबारा दाएँ मुड़ता है। अब वह किस दिशा में देख रहा है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "East",
+        "South",
+        "West",
+        "North"
+      ],
+      "te": [
+        "తూర్పు",
+        "దక్షిణం",
+        "పడమర",
+        "ఉత్తరం"
+      ],
+      "hi": [
+        "पूर्व",
+        "दक्षिण",
+        "पश्चिम",
+        "उत्तर"
+      ]
+    }
+  },
+  "Book is to Reading as Fork is to __.": {
+    "questionTranslations": {
+      "en": "Book is to Reading as Fork is to __.",
+      "te": "పుస్తకం : చదవడం :: ఫోర్క్ : __.",
+      "hi": "पुस्तक : पढ़ना :: काँटा (Fork) : __."
+    },
+    "optionTranslations": {
+      "en": [
+        "Sleeping",
+        "Eating",
+        "Walking",
+        "Writing"
+      ],
+      "te": [
+        "నిద్రపోవడం",
+        "తినడం",
+        "నడవడం",
+        "రాయడం"
+      ],
+      "hi": [
+        "सोना",
+        "खाना",
+        "चलना",
+        "लिखना"
+      ]
+    }
+  },
+  "Find the missing letter: A, C, F, J, O, __.": {
+    "questionTranslations": {
+      "en": "Find the missing letter: A, C, F, J, O, __.",
+      "te": "తప్పిపోయిన అక్షరాన్ని కనుగొనండి: A, C, F, J, O, __.",
+      "hi": "लुप्त अक्षर ज्ञात करें: A, C, F, J, O, __."
+    },
+    "optionTranslations": {
+      "en": [
+        "T",
+        "V",
+        "U",
+        "S"
+      ],
+      "te": [
+        "T",
+        "V",
+        "U",
+        "S"
+      ],
+      "hi": [
+        "T",
+        "V",
+        "U",
+        "S"
+      ]
+    }
+  },
+  "All roses are flowers. All flowers are plants. Which conclusion must be true?": {
+    "questionTranslations": {
+      "en": "All roses are flowers. All flowers are plants. Which conclusion must be true?",
+      "te": "అన్ని గులాబీలు పువ్వులు. అన్ని పువ్వులు మొక్కలు. తప్పనిసరిగా నిజమైన నిర్ణయం ఏది?",
+      "hi": "सभी गुलाब फूल हैं। सभी फूल पौधे हैं। कौन-सा निष्कर्ष अवश्य सत्य है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "No roses are plants",
+        "All roses are plants",
+        "All flowers are roses",
+        "All plants are roses"
+      ],
+      "te": [
+        "ఏ గులాబీ మొక్క కాదు",
+        "అన్ని గులాబీలు మొక్కలే",
+        "అన్ని పువ్వులు గులాబీలే",
+        "అన్ని మొక్కలు గులాబీలే"
+      ],
+      "hi": [
+        "कोई गुलाब पौधा नहीं है",
+        "सभी गुलाब पौधे हैं",
+        "सभी फूल गुलाब हैं",
+        "सभी पौधे गुलाब हैं"
+      ]
+    }
+  },
+  "Ravi is the brother of Sita. Sita is the daughter of Meena. How is Ravi related to Meena?": {
+    "questionTranslations": {
+      "en": "Ravi is the brother of Sita. Sita is the daughter of Meena. How is Ravi related to Meena?",
+      "te": "రవి సీత సోదరుడు. సీత మీనా కుమార్తె. రవికి మీనాతో ఏ బంధం?",
+      "hi": "रवि सीता का भाई है। सीता मीना की बेटी है। रवि का मीना से क्या संबंध है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "Uncle",
+        "Brother",
+        "Son",
+        "Father"
+      ],
+      "te": [
+        "మామయ్య",
+        "సోదరుడు",
+        "కుమారుడు",
+        "తండ్రి"
+      ],
+      "hi": [
+        "मामा",
+        "भाई",
+        "बेटा",
+        "पिता"
+      ]
+    }
+  },
+  "In a row, Anu is 7th from the left and 9th from the right. How many people are in the row?": {
+    "questionTranslations": {
+      "en": "In a row, Anu is 7th from the left and 9th from the right. How many people are in the row?",
+      "te": "ఒక వరుసలో అను ఎడమ నుంచి 7వది, కుడి నుంచి 9వది. మొత్తం ఎంతమంది ఉన్నారు?",
+      "hi": "एक पंक्ति में अनु बाएँ से 7वीं और दाएँ से 9वीं है। कुल कितने लोग हैं?"
+    },
+    "optionTranslations": {
+      "en": [
+        "14",
+        "17",
+        "15",
+        "16"
+      ],
+      "te": [
+        "14",
+        "17",
+        "15",
+        "16"
+      ],
+      "hi": [
+        "14",
+        "17",
+        "15",
+        "16"
+      ]
+    }
+  },
+  "Find the next number: 1, 4, 9, 16, 25, __.": {
+    "questionTranslations": {
+      "en": "Find the next number: 1, 4, 9, 16, 25, __.",
+      "te": "తర్వాతి సంఖ్యను కనుగొనండి: 1, 4, 9, 16, 25, __.",
+      "hi": "अगली संख्या ज्ञात करें: 1, 4, 9, 16, 25, __."
+    },
+    "optionTranslations": {
+      "en": [
+        "49",
+        "36",
+        "30",
+        "35"
+      ],
+      "te": [
+        "49",
+        "36",
+        "30",
+        "35"
+      ],
+      "hi": [
+        "49",
+        "36",
+        "30",
+        "35"
+      ]
+    }
+  },
+  "Which pair has the same relationship as Bird : Nest?": {
+    "questionTranslations": {
+      "en": "Which pair has the same relationship as Bird : Nest?",
+      "te": "పక్షి : గూడు అనే సంబంధానికి సమానమైన జంట ఏది?",
+      "hi": "पक्षी : घोंसला के समान संबंध वाला युग्म कौन-सा है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "Dog : Kennel",
+        "Cow : Tree",
+        "Bee : River",
+        "Fish : Sky"
+      ],
+      "te": [
+        "కుక్క : కుక్కల గూడు",
+        "ఆవు : చెట్టు",
+        "తేనెటీగ : నది",
+        "చేప : ఆకాశం"
+      ],
+      "hi": [
+        "कुत्ता : केनेल",
+        "गाय : पेड़",
+        "मधुमक्खी : नदी",
+        "मछली : आकाश"
+      ]
+    }
+  },
+  "If TODAY is coded by shifting each letter one step forward, what is the code?": {
+    "questionTranslations": {
+      "en": "If TODAY is coded by shifting each letter one step forward, what is the code?",
+      "te": "TODAY లో ప్రతి అక్షరాన్ని ఒక స్థానం ముందుకు మార్చితే సంకేతం ఏమిటి?",
+      "hi": "TODAY के हर अक्षर को एक स्थान आगे बढ़ाने पर कोड क्या होगा?"
+    },
+    "optionTranslations": {
+      "en": [
+        "UPEBZ",
+        "UPEAZ",
+        "UPFCZ",
+        "SNCZX"
+      ],
+      "te": [
+        "UPEBZ",
+        "UPEAZ",
+        "UPFCZ",
+        "SNCZX"
+      ],
+      "hi": [
+        "UPEBZ",
+        "UPEAZ",
+        "UPFCZ",
+        "SNCZX"
+      ]
+    }
+  },
+  "Five people stand in a line. P is immediately left of Q, and Q is immediately left of R. Who is in the middle of P, Q and R?": {
+    "questionTranslations": {
+      "en": "Five people stand in a line. P is immediately left of Q, and Q is immediately left of R. Who is in the middle of P, Q and R?",
+      "te": "ఐదుగురు వరుసలో ఉన్నారు. P అనేది Q కి వెంటనే ఎడమవైపు, Q అనేది R కి వెంటనే ఎడమవైపు. P, Q, R లలో మధ్యలో ఎవరు?",
+      "hi": "पाँच लोग एक पंक्ति में हैं। P, Q के ठीक बाएँ और Q, R के ठीक बाएँ है। P, Q, R में बीच में कौन है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "P",
+        "Q",
+        "R",
+        "Cannot determine"
+      ],
+      "te": [
+        "P",
+        "Q",
+        "R",
+        "నిర్ణయించలేము"
+      ],
+      "hi": [
+        "P",
+        "Q",
+        "R",
+        "निर्धारित नहीं कर सकते"
+      ]
+    }
+  },
+  "Find the odd number: 4, 9, 16, 25, 30, 36.": {
+    "questionTranslations": {
+      "en": "Find the odd number: 4, 9, 16, 25, 30, 36.",
+      "te": "భిన్నమైన సంఖ్యను కనుగొనండి: 4, 9, 16, 25, 30, 36.",
+      "hi": "अलग संख्या ज्ञात करें: 4, 9, 16, 25, 30, 36."
+    },
+    "optionTranslations": {
+      "en": [
+        "9",
+        "16",
+        "30",
+        "36"
+      ],
+      "te": [
+        "9",
+        "16",
+        "30",
+        "36"
+      ],
+      "hi": [
+        "9",
+        "16",
+        "30",
+        "36"
+      ]
+    }
+  },
+  "If yesterday was Monday, what day is tomorrow?": {
+    "questionTranslations": {
+      "en": "If yesterday was Monday, what day is tomorrow?",
+      "te": "నిన్న సోమవారం అయితే రేపు ఏ రోజు?",
+      "hi": "यदि कल सोमवार था, तो आने वाला कल कौन-सा दिन होगा?"
+    },
+    "optionTranslations": {
+      "en": [
+        "Thursday",
+        "Wednesday",
+        "Tuesday",
+        "Sunday"
+      ],
+      "te": [
+        "గురువారం",
+        "బుధవారం",
+        "మంగళవారం",
+        "ఆదివారం"
+      ],
+      "hi": [
+        "गुरुवार",
+        "बुधवार",
+        "मंगलवार",
+        "रविवार"
+      ]
+    }
+  },
+  "Complete the analogy: 8 : 64 :: 5 : __.": {
+    "questionTranslations": {
+      "en": "Complete the analogy: 8 : 64 :: 5 : __.",
+      "te": "సంబంధాన్ని పూర్తి చేయండి: 8 : 64 :: 5 : __.",
+      "hi": "संबंध पूरा करें: 8 : 64 :: 5 : __."
+    },
+    "optionTranslations": {
+      "en": [
+        "10",
+        "20",
+        "25",
+        "15"
+      ],
+      "te": [
+        "10",
+        "20",
+        "25",
+        "15"
+      ],
+      "hi": [
+        "10",
+        "20",
+        "25",
+        "15"
+      ]
+    }
+  },
+  "A clock shows 3:00. What is the smaller angle between its hour and minute hands?": {
+    "questionTranslations": {
+      "en": "A clock shows 3:00. What is the smaller angle between its hour and minute hands?",
+      "te": "గడియారం 3:00 చూపిస్తోంది. గంట, నిమిషాల ముళ్ల మధ్య చిన్న కోణం ఎంత?",
+      "hi": "घड़ी में 3:00 बजे हैं। घंटे और मिनट की सुइयों के बीच छोटा कोण कितना है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "60 degrees",
+        "120 degrees",
+        "30 degrees",
+        "90 degrees"
+      ],
+      "te": [
+        "60 డిగ్రీలు",
+        "120 డిగ్రీలు",
+        "30 డిగ్రీలు",
+        "90 డిగ్రీలు"
+      ],
+      "hi": [
+        "60 डिग्री",
+        "120 डिग्री",
+        "30 डिग्री",
+        "90 डिग्री"
+      ]
+    }
+  },
+  "Choose the correct article: She is __ honest person.": {
+    "questionTranslations": {
+      "en": "Choose the correct article: She is __ honest person.",
+      "te": "సరైన article ఎంచుకోండి: She is __ honest person.",
+      "hi": "सही article चुनें: She is __ honest person."
+    },
+    "optionTranslations": {
+      "en": [
+        "no article",
+        "an",
+        "a",
+        "the"
+      ],
+      "te": [
+        "no article",
+        "an",
+        "a",
+        "the"
+      ],
+      "hi": [
+        "no article",
+        "an",
+        "a",
+        "the"
+      ]
+    }
+  },
+  "Choose the synonym of \"happy\".": {
+    "questionTranslations": {
+      "en": "Choose the synonym of \"happy\".",
+      "te": "\"happy\" పదానికి సమానార్థక పదాన్ని ఎంచుకోండి.",
+      "hi": "\"happy\" का समानार्थी शब्द चुनें।"
+    },
+    "optionTranslations": {
+      "en": [
+        "Joyful",
+        "Sad",
+        "Angry",
+        "Tired"
+      ],
+      "te": [
+        "Joyful",
+        "Sad",
+        "Angry",
+        "Tired"
+      ],
+      "hi": [
+        "Joyful",
+        "Sad",
+        "Angry",
+        "Tired"
+      ]
+    }
+  },
+  "Choose the antonym of \"ancient\".": {
+    "questionTranslations": {
+      "en": "Choose the antonym of \"ancient\".",
+      "te": "\"ancient\" పదానికి వ్యతిరేకార్థక పదాన్ని ఎంచుకోండి.",
+      "hi": "\"ancient\" का विलोम शब्द चुनें।"
+    },
+    "optionTranslations": {
+      "en": [
+        "Traditional",
+        "Modern",
+        "Old",
+        "Historic"
+      ],
+      "te": [
+        "Traditional",
+        "Modern",
+        "Old",
+        "Historic"
+      ],
+      "hi": [
+        "Traditional",
+        "Modern",
+        "Old",
+        "Historic"
+      ]
+    }
+  },
+  "Fill in the blank: He __ to school every day.": {
+    "questionTranslations": {
+      "en": "Fill in the blank: He __ to school every day.",
+      "te": "ఖాళీని పూరించండి: He __ to school every day.",
+      "hi": "रिक्त स्थान भरें: He __ to school every day."
+    },
+    "optionTranslations": {
+      "en": [
+        "goes",
+        "gone",
+        "going",
+        "go"
+      ],
+      "te": [
+        "goes",
+        "gone",
+        "going",
+        "go"
+      ],
+      "hi": [
+        "goes",
+        "gone",
+        "going",
+        "go"
+      ]
+    }
+  },
+  "Choose the correctly spelled word.": {
+    "questionTranslations": {
+      "en": "Choose the correctly spelled word.",
+      "te": "సరైన స్పెల్లింగ్ ఉన్న పదాన్ని ఎంచుకోండి.",
+      "hi": "सही वर्तनी वाला शब्द चुनें।"
+    },
+    "optionTranslations": {
+      "en": [
+        "Accomodation",
+        "Accommodation",
+        "Acommodation",
+        "Accommondation"
+      ],
+      "te": [
+        "Accomodation",
+        "Accommodation",
+        "Acommodation",
+        "Accommondation"
+      ],
+      "hi": [
+        "Accomodation",
+        "Accommodation",
+        "Acommodation",
+        "Accommondation"
+      ]
+    }
+  },
+  "Identify the noun in: \"The child laughed loudly.\"": {
+    "questionTranslations": {
+      "en": "Identify the noun in: \"The child laughed loudly.\"",
+      "te": "\"The child laughed loudly.\" వాక్యంలో నామవాచకాన్ని గుర్తించండి.",
+      "hi": "\"The child laughed loudly.\" वाक्य में संज्ञा पहचानें।"
+    },
+    "optionTranslations": {
+      "en": [
+        "child",
+        "loudly",
+        "The",
+        "laughed"
+      ],
+      "te": [
+        "child",
+        "loudly",
+        "The",
+        "laughed"
+      ],
+      "hi": [
+        "child",
+        "loudly",
+        "The",
+        "laughed"
+      ]
+    }
+  },
+  "Choose the correct past tense of \"write\".": {
+    "questionTranslations": {
+      "en": "Choose the correct past tense of \"write\".",
+      "te": "\"write\" పదానికి సరైన భూతకాల రూపాన్ని ఎంచుకోండి.",
+      "hi": "\"write\" का सही भूतकाल रूप चुनें।"
+    },
+    "optionTranslations": {
+      "en": [
+        "wrote",
+        "writing",
+        "writed",
+        "written"
+      ],
+      "te": [
+        "wrote",
+        "writing",
+        "writed",
+        "written"
+      ],
+      "hi": [
+        "wrote",
+        "writing",
+        "writed",
+        "written"
+      ]
+    }
+  },
+  "Fill in the blank: They have lived here __ 2020.": {
+    "questionTranslations": {
+      "en": "Fill in the blank: They have lived here __ 2020.",
+      "te": "ఖాళీని పూరించండి: They have lived here __ 2020.",
+      "hi": "रिक्त स्थान भरें: They have lived here __ 2020."
+    },
+    "optionTranslations": {
+      "en": [
+        "from",
+        "since",
+        "during",
+        "for"
+      ],
+      "te": [
+        "from",
+        "since",
+        "during",
+        "for"
+      ],
+      "hi": [
+        "from",
+        "since",
+        "during",
+        "for"
+      ]
+    }
+  },
+  "Choose the correct passive voice of \"The chef cooked the meal.\"": {
+    "questionTranslations": {
+      "en": "Choose the correct passive voice of \"The chef cooked the meal.\"",
+      "te": "\"The chef cooked the meal.\" వాక్యానికి సరైన passive voice ఎంచుకోండి.",
+      "hi": "\"The chef cooked the meal.\" का सही passive voice चुनें।"
+    },
+    "optionTranslations": {
+      "en": [
+        "The meal was cooked by the chef.",
+        "The meal cooks the chef.",
+        "The chef was cooked by the meal.",
+        "The meal is cooking."
+      ],
+      "te": [
+        "The meal was cooked by the chef.",
+        "The meal cooks the chef.",
+        "The chef was cooked by the meal.",
+        "The meal is cooking."
+      ],
+      "hi": [
+        "The meal was cooked by the chef.",
+        "The meal cooks the chef.",
+        "The chef was cooked by the meal.",
+        "The meal is cooking."
+      ]
+    }
+  },
+  "Choose the correct preposition: She is good __ mathematics.": {
+    "questionTranslations": {
+      "en": "Choose the correct preposition: She is good __ mathematics.",
+      "te": "సరైన preposition ఎంచుకోండి: She is good __ mathematics.",
+      "hi": "सही preposition चुनें: She is good __ mathematics."
+    },
+    "optionTranslations": {
+      "en": [
+        "on",
+        "in",
+        "for",
+        "at"
+      ],
+      "te": [
+        "on",
+        "in",
+        "for",
+        "at"
+      ],
+      "hi": [
+        "on",
+        "in",
+        "for",
+        "at"
+      ]
+    }
+  },
+  "Which sentence is grammatically correct?": {
+    "questionTranslations": {
+      "en": "Which sentence is grammatically correct?",
+      "te": "వ్యాకరణపరంగా సరైన వాక్యం ఏది?",
+      "hi": "व्याकरण की दृष्टि से सही वाक्य कौन-सा है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "She does not likes tea.",
+        "She does not like tea.",
+        "She not likes tea.",
+        "She do not like tea."
+      ],
+      "te": [
+        "She does not likes tea.",
+        "She does not like tea.",
+        "She not likes tea.",
+        "She do not like tea."
+      ],
+      "hi": [
+        "She does not likes tea.",
+        "She does not like tea.",
+        "She not likes tea.",
+        "She do not like tea."
+      ]
+    }
+  },
+  "Choose the plural of \"criterion\".": {
+    "questionTranslations": {
+      "en": "Choose the plural of \"criterion\".",
+      "te": "\"criterion\" పదానికి బహువచనం ఏది?",
+      "hi": "\"criterion\" का बहुवचन क्या है?"
+    },
+    "optionTranslations": {
+      "en": [
+        "criterions",
+        "criterionies",
+        "criterias",
+        "criteria"
+      ],
+      "te": [
+        "criterions",
+        "criterionies",
+        "criterias",
+        "criteria"
+      ],
+      "hi": [
+        "criterions",
+        "criterionies",
+        "criterias",
+        "criteria"
+      ]
+    }
+  },
+  "Fill in the blank: If it rains, we __ stay indoors.": {
+    "questionTranslations": {
+      "en": "Fill in the blank: If it rains, we __ stay indoors.",
+      "te": "ఖాళీని పూరించండి: If it rains, we __ stay indoors.",
+      "hi": "रिक्त स्थान भरें: If it rains, we __ stay indoors."
+    },
+    "optionTranslations": {
+      "en": [
+        "would have",
+        "will",
+        "have been",
+        "had"
+      ],
+      "te": [
+        "would have",
+        "will",
+        "have been",
+        "had"
+      ],
+      "hi": [
+        "would have",
+        "will",
+        "have been",
+        "had"
+      ]
+    }
+  },
+  "Choose the synonym of \"brief\".": {
+    "questionTranslations": {
+      "en": "Choose the synonym of \"brief\".",
+      "te": "\"brief\" పదానికి సమానార్థక పదాన్ని ఎంచుకోండి.",
+      "hi": "\"brief\" का समानार्थी शब्द चुनें।"
+    },
+    "optionTranslations": {
+      "en": [
+        "Lengthy",
+        "Loud",
+        "Short",
+        "Difficult"
+      ],
+      "te": [
+        "Lengthy",
+        "Loud",
+        "Short",
+        "Difficult"
+      ],
+      "hi": [
+        "Lengthy",
+        "Loud",
+        "Short",
+        "Difficult"
+      ]
+    }
+  },
+  "Choose the antonym of \"expand\".": {
+    "questionTranslations": {
+      "en": "Choose the antonym of \"expand\".",
+      "te": "\"expand\" పదానికి వ్యతిరేకార్థక పదాన్ని ఎంచుకోండి.",
+      "hi": "\"expand\" का विलोम शब्द चुनें।"
+    },
+    "optionTranslations": {
+      "en": [
+        "Extend",
+        "Contract",
+        "Increase",
+        "Enlarge"
+      ],
+      "te": [
+        "Extend",
+        "Contract",
+        "Increase",
+        "Enlarge"
+      ],
+      "hi": [
+        "Extend",
+        "Contract",
+        "Increase",
+        "Enlarge"
+      ]
+    }
+  },
+  "Choose the correct indirect speech: He said, \"I am tired.\"": {
+    "questionTranslations": {
+      "en": "Choose the correct indirect speech: He said, \"I am tired.\"",
+      "te": "సరైన indirect speech ఎంచుకోండి: He said, \"I am tired.\"",
+      "hi": "सही indirect speech चुनें: He said, \"I am tired.\""
+    },
+    "optionTranslations": {
+      "en": [
+        "He said that I was tired.",
+        "He says that he tired.",
+        "He said that he was tired.",
+        "He said that he is tired."
+      ],
+      "te": [
+        "He said that I was tired.",
+        "He says that he tired.",
+        "He said that he was tired.",
+        "He said that he is tired."
+      ],
+      "hi": [
+        "He said that I was tired.",
+        "He says that he tired.",
+        "He said that he was tired.",
+        "He said that he is tired."
+      ]
+    }
+  },
+  "Fill in the blank: Neither of the answers __ correct.": {
+    "questionTranslations": {
+      "en": "Fill in the blank: Neither of the answers __ correct.",
+      "te": "ఖాళీని పూరించండి: Neither of the answers __ correct.",
+      "hi": "रिक्त स्थान भरें: Neither of the answers __ correct."
+    },
+    "optionTranslations": {
+      "en": [
+        "are",
+        "have",
+        "were",
+        "is"
+      ],
+      "te": [
+        "are",
+        "have",
+        "were",
+        "is"
+      ],
+      "hi": [
+        "are",
+        "have",
+        "were",
+        "is"
+      ]
+    }
+  }
+}
