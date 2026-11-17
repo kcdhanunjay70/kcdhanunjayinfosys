@@ -154,6 +154,38 @@ app.post('/api/admin/bulk-questions',auth,admin,asyncRoute(async(req,res)=>{let 
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:2*1024*1024},fileFilter:(req,file,cb)=>cb(null,file.mimetype==='application/json'||file.originalname.toLowerCase().endsWith('.json'))});
 app.post('/api/admin/upload-questions',auth,admin,upload.single('file'),asyncRoute(async(req,res)=>{if(!req.file)return err(res,400,'JSON file required');let items;try{items=JSON.parse(req.file.buffer.toString('utf8'));}catch{return err(res,400,'Invalid JSON file');}const count=await insertQuestions(clean(req.body.exam_id),items);res.json({success:true,message:`${count} questions uploaded`,count});}));
 app.get('/api/admin/questions-template',auth,admin,(req,res)=>{res.attachment('question-upload-template.json').json([{question:'Sample question?',option_a:'First',option_b:'Second',option_c:'Third',option_d:'Fourth',correct_answer:'A'}]);});
+app.patch('/api/admin/gate-da-q6-image', auth, admin, asyncRoute(async (req, res) => {
+  const examId = '3c23d492-cfdf-4bd8-8cd7-c3d25928ef85';
+  const imagePath = '/assets/gate2025-da/2025DAGA06.jpg';
+
+  const filter = {
+    exam_id: examId,
+    question: {
+      $regex: '^Column-I has statements made by Shanthala'
+    }
+  };
+
+  const questions = await c('questions')
+    .find(filter)
+    .limit(2)
+    .toArray();
+
+  if (questions.length !== 1) {
+    return err(res, 409, 'Expected exactly one Q6 question');
+  }
+
+  const result = await c('questions').updateOne(
+    { _id: questions[0]._id },
+    { $set: { questionImages: [imagePath] } }
+  );
+
+  res.json({
+    success: true,
+    matched: result.matchedCount,
+    modified: result.modifiedCount,
+    questionImages: [imagePath]
+  });
+}));
 const paidKey=(type,mock)=>({exam_type:clean(type).toLowerCase(),mock:clean(mock)});
 async function paid(u,type,mock){return Boolean(u&&await c('payments').findOne({user_id:uid(u),...paidKey(type,mock),status:'paid'}));}
 app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
