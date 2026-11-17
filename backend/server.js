@@ -58,7 +58,96 @@ app.post('/api/admin/create-exam',auth,admin,asyncRoute(async(req,res)=>{const b
 secure('/api/admin/exams',async(req,res)=>res.json({exams:(await c('exams').find().sort({created_at:-1}).limit(500).toArray()).map(examPublic)}));
 app.patch('/api/admin/exams/:id/access',auth,admin,asyncRoute(async(req,res)=>{const access=clean(req.body?.access_type).toLowerCase();if(!['free','paid'].includes(access))return err(res,400,'access_type must be free or paid');const result=await c('exams').findOneAndUpdate({id:req.params.id},{$set:{access_type:access,access_updated_at:new Date(),access_updated_by:uid(req.user)}},{returnDocument:'after'});if(!result)return err(res,404,'Exam not found');res.json({success:true,exam:examPublic(result)});}));
 app.get('/api/exams/catalog',auth,asyncRoute(async(req,res)=>{if(req.user.role!=='student'&&req.user.role!=='admin')return err(res,403,'Login required');const exams=await c('exams').find().sort({created_at:-1}).limit(500).toArray();res.json({success:true,exams:exams.map(examPublic)});}));
-function normalizeQuestion(b,examId){const opts=Array.isArray(b.options)?b.options:[b.option_a,b.option_b,b.option_c,b.option_d];const options=opts.map(clean);const raw=clean(b.correct_answer||b.answer||b.correctAnswer).toUpperCase();const answer=/^[A-D]$/.test(raw)?raw:/^[0-3]$/.test(raw)?'ABCD'[Number(raw)]:'';if(!clean(b.question)||options.length!==4||options.some(x=>!x)||!answer)throw Object.assign(new Error('Each question needs question, four options and correct_answer A/B/C/D'),{status:400});return {id:id(),exam_id:examId,question:clean(b.question),options,correct_answer:answer,created_at:new Date()};}
+// Allow only images stored in frontend/assets.
+function questionImagePath(value) {
+  const v = clean(value);
+  return /^\/assets\/[a-zA-Z0-9_./-]+\.(?:jpg|jpeg|png|webp|gif)$/i.test(v)
+    && !v.includes('..') ? v : '';
+}
+
+function normalizeQuestion(b, examId) {
+  const opts = Array.isArray(b.options)
+    ? b.options
+    : [b.option_a, b.option_b, b.option_c, b.option_d];
+
+  const options = opts.map(clean);
+
+  const raw = clean(
+    b.correct_answer || b.answer || b.correctAnswer
+  ).toUpperCase();
+
+  const answer = /^[A-D]$/.test(raw)
+    ? raw
+    : /^[0-3]$/.test(raw) ? 'ABCD'[Number(raw)] : '';
+
+  const imagePaths = Array.isArray(b.questionImages)
+    ? b.questionImages
+    : [b.local_image_file || b.diagram_file].filter(Boolean);
+
+  const questionImages = imagePaths
+    .map(questionImagePath)
+    .filter(Boolean);
+
+  const optionImages = Array.from({ length: 4 }, (_, i) => {
+    const rawImages = Array.isArray(b.optionImages?.[i])
+      ? b.optionImages[i]
+      : [b.option_image_files?.['ABCD'[i]]].filter(Boolean);
+
+    return rawImages.map(questionImagePath).filter(Boolean);
+  });
+
+  const marks = b.marks === undefined ||
+    b.marks === null || b.marks === ''
+      ? 1
+      : Number(b.marks);
+
+  if (
+    !clean(b.question) ||
+    options.length !== 4 ||
+    options.some((x, i) => !x && !optionImages[i].length) ||
+    !answer
+  ) {
+    throw Object.assign(
+      new Error('Each question needs question, four options (text or images), and correct_answer A/B/C/D'),
+      { status: 400 }
+    );
+  }
+
+  if (!Number.isInteger(marks) || marks < 1 || marks > 100) {
+    throw Object.assign(
+      new Error('Question marks must be a whole number from 1 to 100'),
+      { status: 400 }
+    );
+  }
+
+  if (
+    imagePaths.length !== questionImages.length ||
+    optionImages.some((images, i) => {
+      const rawImages = Array.isArray(b.optionImages?.[i])
+        ? b.optionImages[i]
+        : [b.option_image_files?.['ABCD'[i]]].filter(Boolean);
+
+      return rawImages.length !== images.length;
+    })
+  ) {
+    throw Object.assign(
+      new Error('Image URLs must be local /assets/... image paths'),
+      { status: 400 }
+    );
+  }
+
+  return {
+    id: id(),
+    exam_id: examId,
+    question: clean(b.question),
+    options,
+    correct_answer: answer,
+    marks,
+    questionImages,
+    optionImages,
+    created_at: new Date()
+  };
+}
 async function insertQuestions(examId,items){const e=await c('exams').findOne({id:examId});if(!e)throw Object.assign(new Error('Exam not found'),{status:404});if(!Array.isArray(items)||!items.length||items.length>1000)throw Object.assign(new Error('Provide 1-1000 questions'),{status:400});const qs=items.map(q=>normalizeQuestion(q,examId));await c('questions').insertMany(qs);await c('exams').updateOne({id:examId},{$inc:{question_count:qs.length}});return qs.length;}
 app.post('/api/admin/add-questions',auth,admin,asyncRoute(async(req,res)=>{const count=await insertQuestions(clean(req.body.exam_id),[req.body]);res.json({success:true,count});}));
 app.post('/api/admin/bulk-questions',auth,admin,asyncRoute(async(req,res)=>{let items;try{items=JSON.parse(req.body.bulk_text||'');}catch{return err(res,400,'Bulk questions must be a JSON array');}const count=await insertQuestions(clean(req.body.exam_id),items);res.json({success:true,message:`${count} questions added`,count});}));
@@ -78,7 +167,25 @@ app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
  if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,exam.type,exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true,exam:examPublic(exam)});
  const questions=await c('questions').find({exam_id:exam.id}).sort({created_at:1}).limit(1000).toArray();
  if(!questions.length)return err(res,404,'This exam has no questions');
- res.json({success:true,...examPublic(exam),actualType:exam.type,questions:questions.map(({id,question,options})=>({id,question,options,optionLabels:['A','B','C','D'],...(exam.id===LEGACY_FREE_EXAM_ID?(ARE_TRANSLATIONS[question]||{}):{})}))});
+ res.json({
+  success: true,
+  ...examPublic(exam),
+  actualType: exam.type,
+  questions: questions.map(({
+    id, question, options, questionImages, optionImages, marks
+  }) => ({
+    id,
+    question,
+    options,
+    questionImages: questionImages || [],
+    optionImages: optionImages || [[], [], [], []],
+    marks: marks || 1,
+    optionLabels: ['A', 'B', 'C', 'D'],
+    ...(exam.id === LEGACY_FREE_EXAM_ID
+      ? (ARE_TRANSLATIONS[question] || {})
+      : {})
+  }))
+});
 }));
 app.post('/api/exam/session',auth,asyncRoute(async(req,res)=>{const examId=clean(req.body.examId);const exam=await c('exams').findOne({id:examId});if(!exam)return err(res,404,'Exam not found');if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,exam.type,exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true});let s=await c('sessions').findOne({user_id:uid(req.user),exam_id:examId,status:'active',expires_at:{$gt:new Date()}});if(!s){s={id:id(),user_id:uid(req.user),exam_id:examId,answers:{},answer_revision:0,status:'active',created_at:new Date(),expires_at:new Date(Date.now()+exam.duration*60000)};await c('sessions').insertOne(s);}res.json({success:true,attemptId:s.id,expiresAt:iso(s.expires_at),answers:s.answers,answerRevision:s.answer_revision||0});}));
 app.put('/api/exam/session/:id/answers',auth,asyncRoute(async(req,res)=>{
@@ -146,11 +253,19 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
   let answered = 0;
 
   for (const q of qs) {
-    if (/^[A-D]$/.test(answers[q.id] || '')) {
-      answered++;
-      if (answers[q.id] === q.correct_answer) score++;
+  if (/^[A-D]$/.test(answers[q.id] || '')) {
+    answered++;
+
+    if (answers[q.id] === q.correct_answer) {
+      score += Number(q.marks) > 0 ? Number(q.marks) : 1;
     }
   }
+}
+
+const maximumMarks = qs.reduce(
+  (sum, q) => sum + (Number(q.marks) > 0 ? Number(q.marks) : 1),
+  0
+);
 
   const result = {
     id: id(),
@@ -164,8 +279,8 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
     exam: exam.title,
     exam_key: clean(b.exam_key) || exam.id,
     score,
-    total: qs.length,
-    percentage: Number((score / qs.length * 100).toFixed(2)),
+    total: maximumMarks,
+	percentage: Number((score / maximumMarks * 100).toFixed(2)),
     risk: Math.min(100, Math.max(0, Number(b.risk) || 0)),
     riskTypes: b.riskTypes || {},
     created_at: new Date()
@@ -219,7 +334,7 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
   res.json({
     success: true,
     score,
-    total: qs.length,
+    total: maximumMarks,
     percentage: result.percentage,
     rank,
     participants,
