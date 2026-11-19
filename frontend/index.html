@@ -185,6 +185,76 @@
         .hero-video-image-rotator img.is-changing {
             opacity: 0.12;
         }
+		
+/* KCDHANUNJAY INFOSYS - Glowing Institute Message */
+.hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] {
+    border: 2px solid #22d3ee;
+    background: linear-gradient(145deg, #020617, #111044, #061b30);
+    box-shadow: 0 0 18px #22d3ee80, inset 0 0 22px #a855f722;
+}
+
+.hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] h2 {
+    background: linear-gradient(90deg, #ff4d6d, #ffe600, #00ffb3, #38bdf8, #e879f9, #ff4d6d);
+    background-size: 300% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: kcdiRainbow 5s linear infinite;
+    filter: drop-shadow(0 0 5px #facc15);
+}
+
+.hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] p {
+    color: #fff4a3;
+    text-shadow: 0 0 7px #f59e0b, 0 0 13px #f59e0b55;
+    animation: kcdiGlow 3s ease-in-out infinite alternate;
+}
+
+.hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] a {
+    padding: 9px 12px;
+    border: 1px solid #ffffff55;
+    border-radius: 12px;
+    color: #fff;
+    text-decoration: none !important;
+    background: linear-gradient(110deg, #7c3aed, #2563eb, #0891b2);
+    background-size: 200% 100%;
+    box-shadow: 0 0 12px #818cf855;
+    animation: kcdiRainbow 6s linear infinite;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] a:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 22px #22d3ee;
+}
+
+.hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] a[href*="whatsapp.com/channel"] {
+    background: linear-gradient(110deg, #047857, #16a34a, #059669);
+    color: white;
+}
+
+.hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] a[href^="tel:"] {
+    background: linear-gradient(110deg, #92400e, #f59e0b, #b45309);
+    color: #fff;
+    text-shadow: 0 0 5px #000;
+}
+
+@keyframes kcdiRainbow {
+    from { background-position: 0% 50%; }
+    to { background-position: 300% 50%; }
+}
+
+@keyframes kcdiGlow {
+    from { text-shadow: 0 0 4px #facc15; }
+    to { text-shadow: 0 0 12px #f59e0b, 0 0 20px #e879f9; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] h2,
+    .hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] p,
+    .hero-media-panel[aria-label="KCDHANUNJAY INFOSYS Institute Information"] a {
+        animation: none;
+    }
+}
 
         .hero-media-showcase {
             width: min(1220px, 100%);
@@ -194,7 +264,7 @@
             gap: 18px;
             align-items: stretch;
         }
-
+		
         .hero-media-showcase .hero-media-panel {
             width: 100%;
             margin: 0;
