@@ -3305,7 +3305,17 @@
             color: #080008 !important;
             text-shadow: none !important;
         }
-    </style>
+            /* Mobile-friendly homepage improvements */
+        #projects { scroll-margin-top: 96px; }
+        @media (max-width: 760px) {
+            .site-nav { width: 100%; max-width: 100%; box-sizing: border-box; }
+            .site-nav a { min-width: 0; text-align: center; overflow-wrap: anywhere; }
+            .glow-header { font-size: clamp(1.65rem, 7vw, 2.8rem); overflow-wrap: anywhere; }
+            .hero-media-showcase { width: 100%; min-width: 0; }
+            .hero-course-flyer { width: 100%; min-width: 0; }
+            .hero-course-flyer img { max-width: 100%; height: auto; }
+        }
+</style>
 </head>
 <body>
 <video autoplay="" class="bg-video" loop="" muted="" playsinline="">
