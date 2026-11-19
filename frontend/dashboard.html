@@ -9,6 +9,7 @@
 .portal{max-width:1150px;margin:auto;padding:24px 18px 65px}.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px}.brand{font-weight:800;font-size:clamp(18px,2.5vw,26px);color:#fff;text-decoration:none}.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.pill{border:1px solid #ffffff70;border-radius:100px;padding:7px 12px;font-size:13px}.logout{background:#fff;color:#075c69;border:0;border-radius:10px;padding:10px 17px;cursor:pointer;font-weight:700}.hero,.section{background:#ffffff20;border:1px solid #ffffff45;border-radius:20px;padding:clamp(18px,3vw,32px);box-shadow:0 12px 28px #00495824;backdrop-filter:blur(6px)}.hero h1{margin:0 0 8px;font-size:clamp(25px,4vw,37px)}.hero p{margin:6px 0}.muted{color:#e5fbff}.nav{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}.nav a,.tile{color:#fff;text-decoration:none}.nav a{padding:10px 13px;border:1px solid #ffffff70;border-radius:10px;background:#034f6580;font-weight:650;font-size:14px}.nav a:hover,.tile:hover{background:#ffffff33}.section{margin-top:22px}.section h2{margin:0 0 16px;font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.tile{display:block;padding:20px;border:1px solid #ffffff70;border-radius:14px;background:#07556b77;min-height:124px}.tile strong{display:block;font-size:18px;margin-bottom:10px}.tile span{font-size:14px;line-height:1.5;color:#e6f9fb}.status{padding:12px;border-radius:10px;background:#003e54a8;margin-top:15px}.results-table{width:100%;border-collapse:collapse;min-width:560px}.results-table th,.results-table td{padding:11px;text-align:left;border-bottom:1px solid #ffffff50}.results-wrap{overflow-x:auto}.results-table th{background:#034f6580}.hidden{display:none!important}a:focus-visible,button:focus-visible{outline:3px solid #ffe38c;outline-offset:3px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:22px 0}.stat-card{background:#07556b99;border:1px solid #ffffff70;border-radius:14px;padding:20px}.stat-card span{display:block;font-size:14px;color:#e5fbff}.stat-card strong{display:block;font-size:clamp(26px,4vw,36px);margin-top:10px}
 .analytics-chart{width:100%;min-height:220px;overflow-x:auto;border:1px solid #ffffff45;border-radius:14px;background:#003e5470;padding:12px}.analytics-chart svg{display:block;width:100%;height:auto;min-height:190px}.analytics-note{color:#e5fbff;font-size:14px;line-height:1.5}
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:18px;margin:20px 0}.profile-grid label{display:flex;flex-direction:column;gap:8px;font-size:14px;font-weight:650;color:#fff}.profile-grid input{width:100%;padding:12px 14px;border:1px solid #ffffff80;border-radius:10px;background:#fff;color:#123b45;font:inherit;font-size:15px}.profile-grid input:focus{outline:3px solid #ffe38c;outline-offset:2px}.profile-grid input[readonly]{background:#dcecf0;color:#425d65;cursor:not-allowed}#profileSave{margin-top:8px}#profileSave:disabled{opacity:.6;cursor:wait}#profileStatus{min-height:22px;margin-top:14px}
 </style>
 </head>
 <body>
@@ -17,7 +18,7 @@
 <main>
 <section class="hero"><h1>Welcome, <span id="studentName">Student</span>!</h1><p class="muted">Explore your courses, projects and mock examinations from one place.</p><p><strong>Student ID:</strong> <span id="studentId">—</span></p><p id="studentEmail" class="muted"></p></section>
 <section class="stats-grid" id="dashboardStats" aria-label="Student performance summary"><div class="stat-card"><span>Available Exams</span><strong id="statAvailable">-</strong></div><div class="stat-card"><span>Completed Attempts (Latest 100)</span><strong id="statCompleted">-</strong></div><div class="stat-card"><span>Average Score (Latest 100)</span><strong id="statAverage">-</strong></div><div class="stat-card"><span>Best Score (Latest 100)</span><strong id="statBest">-</strong></div></section>
-<nav class="nav" aria-label="Student navigation"><a href="/#home">Home</a><a href="/#courses">Courses</a><a href="/#projects">Projects</a><a href="/#examMocksHeader">Mock Exams</a><a href="#my-results">My Results</a><a href="/my-payments.html">My Payments</a><a href="/#contact">Contact</a></nav>
+<nav class="nav" aria-label="Student navigation"><a href="/#home">Home</a><a href="/#courses">Courses</a><a href="/#projects">Projects</a><a href="/#examMocksHeader">Mock Exams</a><a href="#my-profile">My Profile</a><a href="#my-results">My Results</a><a href="/my-payments.html">My Payments</a><a href="/#contact">Contact</a></nav>
 <section class="section"><h2>Your Learning Portal</h2><div class="grid">
 <a class="tile" href="/#home"><strong>🏠 Full Website</strong><span>Visit the complete KCDhanunjay Infosys website.</span></a>
 <a class="tile" href="/#courses"><strong>📚 Courses</strong><span>Browse available courses and learning materials.</span></a>
@@ -26,6 +27,7 @@
 <a class="tile" href="/my-payments.html"><strong>💳 My Payments</strong><span>View your payment information and status.</span></a>
 <a class="tile" href="/#contact"><strong>✉️ Contact</strong><span>Reach the institute for help and support.</span></a>
 </div></section>
+<section class="section" id="my-profile" aria-labelledby="profileTitle"><h2 id="profileTitle">My Student Profile</h2><p class="muted">View and update your personal information.</p><form id="profileForm"><div class="profile-grid"><label>Full Name<input id="profileName" name="name" type="text" minlength="2" maxlength="100" autocomplete="name" required></label><label>Email Address<input id="profileEmail" name="email" type="email" maxlength="254" autocomplete="email" required></label><label>Mobile Number<input id="profilePhone" name="phone" type="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel" required></label><label>Current Password<input id="profileCurrentPassword" name="currentPassword" type="password" autocomplete="current-password" minlength="8" required></label><label>Student ID<input id="profileStudentId" type="text" readonly></label><label>Username<input id="profileUsername" type="text" readonly></label></div><button class="logout" id="profileSave" type="submit">Save Changes</button><p id="profileStatus" class="muted" role="status" aria-live="polite"></p></form></section>
 <section class="section" id="available-exams"><h2>🎓 Available Exams — FREE / PAID</h2><p class="muted">Exam access is set by the administrator. All exams require student login.</p><div class="grid" id="availableExamList"><p>Loading exams…</p></div></section>
 <section class="section" id="exam-analytics" aria-labelledby="analyticsTitle"><h2 id="analyticsTitle">Exam Performance Analytics</h2><p class="muted">Score progress across your latest 100 exam attempts, oldest to newest.</p><div class="analytics-chart" id="examAnalyticsChart" role="img" aria-label="Exam score progress chart"><p class="analytics-note">Loading exam performance...</p></div><p class="analytics-note" id="analyticsStatus" role="status">Waiting for results...</p></section>
 <section class="section" id="my-results"><h2>My Results & Rankings</h2><p class="muted">Your latest 100 exam submissions, loaded securely from the database.</p><button class="logout" type="button" id="refreshResults">Refresh Results</button><p id="resultsStatus" role="status">Loading your results…</p><div class="results-wrap"><table class="results-table"><thead><tr><th>Exam</th><th>Marks</th><th>Percentage</th><th>Rank</th><th>Completed</th></tr></thead><tbody id="myResultsRows"></tbody></table></div></section>
@@ -255,6 +257,35 @@ async function loadAvailableExams(){
   if(!list.children.length)list.textContent='No exams available yet.';
  }catch(error){list.textContent=error.message;}
 }
+document.getElementById('profileForm').addEventListener('submit',async function(event){
+ event.preventDefault();
+ const form=this;
+ if(!form.reportValidity())return;
+ const button=document.getElementById('profileSave');
+ const status=document.getElementById('profileStatus');
+ const name=document.getElementById('profileName').value.trim();
+ const email=document.getElementById('profileEmail').value.trim();
+ const phone=document.getElementById('profilePhone').value.trim();
+ const currentPassword=document.getElementById('profileCurrentPassword').value;
+ if(name.length<2||name.length>100||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||!/^\d{10}$/.test(phone)){status.textContent='Please enter valid name, email and 10-digit mobile number.';return;}
+ button.disabled=true;status.textContent='Saving profile changes...';
+ try{
+  const response=await fetch('/api/profile',{method:'PATCH',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},body:JSON.stringify({name,email,phone,currentPassword})});
+  const data=await response.json();
+  if(response.status===401){goLogin();return;}
+  if(!response.ok||!data.success||!data.user)throw new Error(data.message||'Unable to update profile');
+  const user=data.user;
+  document.getElementById('studentName').textContent=user.name||'Student';
+  document.getElementById('studentEmail').textContent=user.email||'';
+  document.getElementById('profileName').value=user.name||'';
+  document.getElementById('profileEmail').value=user.email||'';
+  document.getElementById('profilePhone').value=user.phone||'';
+  localStorage.setItem('user',JSON.stringify(user));
+  document.getElementById('profileCurrentPassword').value='';
+  status.textContent='Profile updated successfully!';
+ }catch(error){status.textContent=error.message||'Profile update failed. Please try again.';}
+ finally{button.disabled=false;}
+});
 document.getElementById('refreshResults').addEventListener('click',loadMyResults);
 
 fetch('/api/auth/verify',{headers:{Authorization:'Bearer '+token},cache:'no-store'})
@@ -270,6 +301,11 @@ localStorage.setItem('user',JSON.stringify(user));
 document.getElementById('studentName').textContent=user.name||'Student';
 document.getElementById('studentId').textContent=user.username||'Not available';
 document.getElementById('studentEmail').textContent=user.email||'';
+document.getElementById('profileName').value=user.name||'';
+document.getElementById('profileEmail').value=user.email||'';
+document.getElementById('profilePhone').value=user.phone||'';
+document.getElementById('profileStudentId').value=user.id||'';
+document.getElementById('profileUsername').value=user.username||'';
 document.getElementById('portal').hidden=false;
 checking.classList.add('hidden');
 loadMyResults();

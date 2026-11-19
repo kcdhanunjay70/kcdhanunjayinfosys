@@ -52,6 +52,33 @@ app.get('/api/health',asyncRoute(async(req,res)=>{await db.command({ping:1});res
 app.post('/api/auth/register',rate,asyncRoute(async(req,res)=>{const u=await createUser(req.body);res.status(201).json({success:true,username:u.username});}));
 app.post('/api/auth/login',rate,asyncRoute(async(req,res)=>{const {email,password,role}=req.body||{};if(typeof email!=='string'||typeof password!=='string')return err(res,400,'Credentials required');const key=clean(email);const u=await c('users').findOne({$or:[{email:key.toLowerCase()},{phone:key},{username:key}]});if(!u||u.is_active===false||!await bcrypt.compare(password,u.passwordHash)||(role&&role!==u.role))return err(res,401,'Invalid credentials');await c('login_logs').insertOne({id:id(),user_id:uid(u),name:u.name,email:u.email,ip_address:req.ip,login_time:new Date()});res.json({success:true,token:tokenFor(u),user:pub(u)});}));
 app.get('/api/auth/verify',auth,(req,res)=>res.json({success:true,user:pub(req.user)}));
+app.patch('/api/profile',auth,rate,asyncRoute(async(req,res)=>{
+  if(req.user.role!=='student')return err(res,403,'Student access required');
+  const body=req.body;
+  if(!body||typeof body!=='object'||Array.isArray(body))return err(res,400,'Invalid profile data');
+  const allowed=['name','email','phone','currentPassword'];
+  const keys=Object.keys(body);
+  if(!keys.length||keys.some(k=>!allowed.includes(k)))return err(res,400,'Only name, email and phone can be updated');
+  if(typeof body.currentPassword!=='string'||!body.currentPassword)return err(res,400,'Current password required');
+  if(!await bcrypt.compare(body.currentPassword,req.user.passwordHash))return err(res,403,'Incorrect current password');
+  if(!keys.some(k=>k!=='currentPassword'))return err(res,400,'At least one profile field is required');
+  const updates={};
+  for(const field of keys.filter(k=>k!=='currentPassword')){
+    if(typeof body[field]!=='string')return err(res,400,'Invalid '+field);
+    updates[field]=clean(body[field]);
+  }
+  if(updates.name!==undefined&&(updates.name.length<2||updates.name.length>100))return err(res,400,'Name must be 2-100 characters');
+  if(updates.email!==undefined){updates.email=updates.email.toLowerCase();if(!validEmail(updates.email)||updates.email.length>254)return err(res,400,'Invalid email address');}
+  if(updates.phone!==undefined&&!validPhone(updates.phone))return err(res,400,'Mobile number must contain 10 digits');
+  try{
+    const updated=await c('users').findOneAndUpdate({_id:req.user._id,role:'student',is_active:{$ne:false}},{$set:{...updates,updated_at:new Date()}},{returnDocument:'after'});
+    if(!updated)return err(res,404,'Student not found');
+    res.json({success:true,user:pub(updated)});
+  }catch(e){
+    if(e.code===11000)return err(res,409,'Email or mobile already registered');
+    throw e;
+  }
+}));
 const LEGACY_FREE_EXAM_ID='1abd5f62-531d-4d29-9881-a28c92a515b3';
 const accessType=e=>e?.access_type==='free'||(!e?.access_type&&e?.id===LEGACY_FREE_EXAM_ID)?'free':'paid';
 const isFreeRegisteredExam=e=>Boolean(e&&accessType(e)==='free');
