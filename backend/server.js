@@ -12,6 +12,7 @@ import jwt from 'jsonwebtoken';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import multer from 'multer';
+import compression from 'compression';
 
 const {MONGODB_URI,JWT_SECRET,ADMIN_EMAIL,ADMIN_PASSWORD,PORT=3000}=process.env;
 if(!MONGODB_URI || !JWT_SECRET || JWT_SECRET.length<32) throw Error('Set MONGODB_URI and JWT_SECRET (32+ characters)');
@@ -25,6 +26,7 @@ if(ADMIN_EMAIL&&ADMIN_PASSWORD){const email=ADMIN_EMAIL.trim().toLowerCase();if(
 const ARE_TRANSLATIONS = JSON.parse(readFileSync(new URL('./kcdi-are-translations.json', import.meta.url), 'utf8'));
 const app=express();app.disable('x-powered-by');app.set('trust proxy',1);
 app.use(helmet({contentSecurityPolicy:false,crossOriginEmbedderPolicy:false}));
+app.use(compression());
 app.use(express.json({limit:'1mb'}));
 const http=createServer(app),io=new Server(http,{cors:{origin:false}});
 const asyncRoute=fn=>(req,res,next)=>Promise.resolve(fn(req,res,next)).catch(next);
