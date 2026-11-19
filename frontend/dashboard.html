@@ -8,6 +8,7 @@
 :root{color-scheme:light}body{margin:0;min-height:100vh;background:linear-gradient(135deg,#078f9e,#12a7ad);font-family:system-ui,Arial,sans-serif;color:#fff}*{box-sizing:border-box}
 .portal{max-width:1150px;margin:auto;padding:24px 18px 65px}.top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:22px}.brand{font-weight:800;font-size:clamp(18px,2.5vw,26px);color:#fff;text-decoration:none}.actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.pill{border:1px solid #ffffff70;border-radius:100px;padding:7px 12px;font-size:13px}.logout{background:#fff;color:#075c69;border:0;border-radius:10px;padding:10px 17px;cursor:pointer;font-weight:700}.hero,.section{background:#ffffff20;border:1px solid #ffffff45;border-radius:20px;padding:clamp(18px,3vw,32px);box-shadow:0 12px 28px #00495824;backdrop-filter:blur(6px)}.hero h1{margin:0 0 8px;font-size:clamp(25px,4vw,37px)}.hero p{margin:6px 0}.muted{color:#e5fbff}.nav{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}.nav a,.tile{color:#fff;text-decoration:none}.nav a{padding:10px 13px;border:1px solid #ffffff70;border-radius:10px;background:#034f6580;font-weight:650;font-size:14px}.nav a:hover,.tile:hover{background:#ffffff33}.section{margin-top:22px}.section h2{margin:0 0 16px;font-size:22px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px}.tile{display:block;padding:20px;border:1px solid #ffffff70;border-radius:14px;background:#07556b77;min-height:124px}.tile strong{display:block;font-size:18px;margin-bottom:10px}.tile span{font-size:14px;line-height:1.5;color:#e6f9fb}.status{padding:12px;border-radius:10px;background:#003e54a8;margin-top:15px}.results-table{width:100%;border-collapse:collapse;min-width:560px}.results-table th,.results-table td{padding:11px;text-align:left;border-bottom:1px solid #ffffff50}.results-wrap{overflow-x:auto}.results-table th{background:#034f6580}.hidden{display:none!important}a:focus-visible,button:focus-visible{outline:3px solid #ffe38c;outline-offset:3px}
 .stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin:22px 0}.stat-card{background:#07556b99;border:1px solid #ffffff70;border-radius:14px;padding:20px}.stat-card span{display:block;font-size:14px;color:#e5fbff}.stat-card strong{display:block;font-size:clamp(26px,4vw,36px);margin-top:10px}
+.analytics-chart{width:100%;min-height:220px;overflow-x:auto;border:1px solid #ffffff45;border-radius:14px;background:#003e5470;padding:12px}.analytics-chart svg{display:block;width:100%;height:auto;min-height:190px}.analytics-note{color:#e5fbff;font-size:14px;line-height:1.5}
 </style>
 </head>
 <body>
@@ -26,6 +27,7 @@
 <a class="tile" href="/#contact"><strong>✉️ Contact</strong><span>Reach the institute for help and support.</span></a>
 </div></section>
 <section class="section" id="available-exams"><h2>🎓 Available Exams — FREE / PAID</h2><p class="muted">Exam access is set by the administrator. All exams require student login.</p><div class="grid" id="availableExamList"><p>Loading exams…</p></div></section>
+<section class="section" id="exam-analytics" aria-labelledby="analyticsTitle"><h2 id="analyticsTitle">Exam Performance Analytics</h2><p class="muted">Score progress across your latest 100 exam attempts, oldest to newest.</p><div class="analytics-chart" id="examAnalyticsChart" role="img" aria-label="Exam score progress chart"><p class="analytics-note">Loading exam performance...</p></div><p class="analytics-note" id="analyticsStatus" role="status">Waiting for results...</p></section>
 <section class="section" id="my-results"><h2>My Results & Rankings</h2><p class="muted">Your latest 100 exam submissions, loaded securely from the database.</p><button class="logout" type="button" id="refreshResults">Refresh Results</button><p id="resultsStatus" role="status">Loading your results…</p><div class="results-wrap"><table class="results-table"><thead><tr><th>Exam</th><th>Marks</th><th>Percentage</th><th>Rank</th><th>Completed</th></tr></thead><tbody id="myResultsRows"></tbody></table></div></section>
 </main></div>
 <div id="checking" role="status" style="max-width:500px;margin:20vh auto;padding:24px;text-align:center">Checking your student session…</div>
@@ -37,6 +39,106 @@ const checking=document.getElementById('checking');
 function goLogin(){localStorage.removeItem('token');localStorage.removeItem('user');location.replace('/login.html');}
 if(!token){goLogin();return;}
 document.getElementById('logout').addEventListener('click',goLogin);
+
+function renderExamAnalytics(results){
+ const chart=document.getElementById('examAnalyticsChart');
+ const status=document.getElementById('analyticsStatus');
+ chart.replaceChildren();
+
+ const items=results.slice().reverse()
+  .map(r=>({
+   score:r.percentage==null?NaN:Number(r.percentage),
+   exam:String(r.exam||'Exam')
+  }))
+  .filter(r=>Number.isFinite(r.score));
+
+ if(!items.length){
+  chart.textContent='No exam performance data available yet.';
+  status.textContent='Complete an exam to see your progress.';
+  return;
+ }
+
+ const ns='http://www.w3.org/2000/svg';
+ const make=(tag,attrs)=>{
+  const el=document.createElementNS(ns,tag);
+  for(const [key,value] of Object.entries(attrs)){
+   el.setAttribute(key,String(value));
+  }
+  return el;
+ };
+
+ const width=Math.max(600,items.length*42+70);
+ const height=260,left=45,right=20,top=20,bottom=45;
+ const plotWidth=width-left-right;
+ const plotHeight=height-top-bottom;
+
+ const svg=make('svg',{
+  viewBox:`0 0 ${width} ${height}`,
+  width:width,
+  height:height,
+  role:'img',
+  'aria-label':'Exam percentage trend from oldest to newest'
+ });
+
+ const x=i=>left+(items.length===1
+  ?plotWidth/2:i*plotWidth/(items.length-1));
+
+ const y=score=>top+
+  (100-Math.max(0,Math.min(100,score)))*plotHeight/100;
+
+ for(const tick of [0,25,50,75,100]){
+  const yy=y(tick);
+
+  svg.appendChild(make('line',{
+   x1:left,y1:yy,x2:width-right,y2:yy,
+   stroke:'#ffffff55',
+   'stroke-dasharray':'4 4'
+  }));
+
+  const label=make('text',{
+   x:left-8,y:yy+4,
+   'text-anchor':'end',
+   fill:'#ffffff',
+   'font-size':12
+  });
+
+  label.textContent=tick+'%';
+  svg.appendChild(label);
+ }
+
+ const points=items.map(
+  (item,i)=>`${x(i)},${y(item.score)}`
+ ).join(' ');
+
+ svg.appendChild(make('polyline',{
+  points:points,
+  fill:'none',
+  stroke:'#86efac',
+  'stroke-width':3,
+  'stroke-linejoin':'round',
+  'stroke-linecap':'round'
+ }));
+
+ items.forEach((item,i)=>{
+  const dot=make('circle',{
+   cx:x(i),
+   cy:y(item.score),
+   r:4,
+   fill:'#fef08a'
+  });
+
+  const title=make('title',{});
+  title.textContent=`${item.exam}: ${item.score.toFixed(1)}%`;
+  dot.appendChild(title);
+  svg.appendChild(dot);
+ });
+
+ chart.appendChild(svg);
+
+ status.textContent=
+  `Showing ${items.length} exam attempt(s), oldest to newest. Scroll horizontally on mobile if needed.`;
+}
+
 async function loadMyResults(){
  const status=document.getElementById('resultsStatus'),body=document.getElementById('myResultsRows');
  body.replaceChildren();status.textContent='Loading your results…';
@@ -45,6 +147,7 @@ async function loadMyResults(){
   if(!response.ok)throw new Error(response.status===401?'Session expired':`Results request failed (${response.status})`);
   const data=await response.json();if(!data.success)throw new Error(data.message||'Could not load results');
   const results=Array.isArray(data.results)?data.results:[];
+  renderExamAnalytics(results);
   document.getElementById('statCompleted').textContent=String(results.length);
   const scores=results.map(r=>Number(r.percentage)).filter(n=>Number.isFinite(n));
   document.getElementById('statAverage').textContent=scores.length?(scores.reduce((sum,n)=>sum+n,0)/scores.length).toFixed(1)+'%':'0%';
