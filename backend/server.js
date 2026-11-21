@@ -35,8 +35,8 @@ const id=()=>randomUUID();
 const iso=v=>v instanceof Date?v.toISOString():v;
 const uid=u=>String(u._id);
 const pub=u=>({id:uid(u),name:u.name,email:u.email,phone:u.phone||'',username:u.username,role:u.role});
-const tokenFor=u=>jwt.sign({sub:uid(u)},JWT_SECRET,{expiresIn:'12h'});
-const getUser=async token=>{try{const p=jwt.verify(token,JWT_SECRET);if(!ObjectId.isValid(p.sub))return null;const u=await c('users').findOne({_id:new ObjectId(p.sub)});return u&&u.is_active!==false?u:null;}catch{return null;}};
+const tokenFor=u=>jwt.sign({sub:uid(u),tv:u.tokenVersion||0},JWT_SECRET,{expiresIn:'12h'});
+const getUser=async token=>{try{const p=jwt.verify(token,JWT_SECRET);if(!ObjectId.isValid(p.sub))return null;const u=await c('users').findOne({_id:new ObjectId(p.sub)});return u&&u.is_active!==false&&(Number.isInteger(p.tv)?p.tv:0)===(u.tokenVersion||0)?u:null;}catch{return null;}};
 const bearer=req=>/^Bearer (.+)$/i.exec(req.headers.authorization||'')?.[1]||'';
 const optionalAuth=asyncRoute(async(req,res,next)=>{req.user=await getUser(bearer(req));next()});
 const auth=asyncRoute(async(req,res,next)=>{req.user=await getUser(bearer(req));if(!req.user)return err(res,401,'Login required');next()});
@@ -78,6 +78,18 @@ app.patch('/api/profile',auth,rate,asyncRoute(async(req,res)=>{
     if(e.code===11000)return err(res,409,'Email or mobile already registered');
     throw e;
   }
+}));
+app.patch('/api/auth/change-password',auth,rate,asyncRoute(async(req,res)=>{
+  if(req.user.role!=='student')return err(res,403,'Student access required');
+  const {currentPassword,newPassword}=req.body||{};
+  if(typeof currentPassword!=='string'||!currentPassword)return err(res,400,'Current password required');
+  if(typeof newPassword!=='string'||newPassword.length<8||newPassword.length>128)return err(res,400,'New password must be 8-128 characters');
+  if(currentPassword===newPassword)return err(res,400,'New password must be different from current password');
+  if(!await bcrypt.compare(currentPassword,req.user.passwordHash))return err(res,403,'Incorrect current password');
+  const passwordHash=await bcrypt.hash(newPassword,12);
+  const result=await c('users').updateOne({_id:req.user._id,role:'student',is_active:{$ne:false},passwordHash:req.user.passwordHash},{$set:{passwordHash,password_changed_at:new Date(),updated_at:new Date()},$inc:{tokenVersion:1}});
+  if(!result.matchedCount)return err(res,409,'Password changed or account unavailable. Please log in again');
+  res.json({success:true,message:'Password changed successfully'});
 }));
 const LEGACY_FREE_EXAM_ID='1abd5f62-531d-4d29-9881-a28c92a515b3';
 const accessType=e=>e?.access_type==='free'||(!e?.access_type&&e?.id===LEGACY_FREE_EXAM_ID)?'free':'paid';
