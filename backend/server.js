@@ -94,11 +94,54 @@ app.patch('/api/auth/change-password',auth,rate,asyncRoute(async(req,res)=>{
 const LEGACY_FREE_EXAM_ID='1abd5f62-531d-4d29-9881-a28c92a515b3';
 const accessType=e=>e?.access_type==='free'||(!e?.access_type&&e?.id===LEGACY_FREE_EXAM_ID)?'free':'paid';
 const isFreeRegisteredExam=e=>Boolean(e&&accessType(e)==='free');
-const examPublic=e=>({id:e.id,title:e.title,subject:e.subject,duration:e.duration,total_marks:e.total_marks,type:e.type,mock:e.mock,question_count:e.question_count||0,access_type:accessType(e),created_at:e.created_at});
+const examPublic=e=>({id:e.id,title:e.title,subject:e.subject,duration:e.duration,total_marks:e.total_marks,type:e.type,mock:e.mock,question_count:e.question_count||0,access_type:accessType(e),is_archived:e.is_archived===true,created_at:e.created_at});
 app.post('/api/admin/create-exam',auth,admin,asyncRoute(async(req,res)=>{const b=req.body||{};if(!clean(b.title)||!(Number(b.duration)>0&&Number(b.duration)<=480))return err(res,400,'Title and duration (1-480 minutes) required');if(!['free','paid'].includes(b.access_type))return err(res,400,'Choose FREE or PAID exam access');const e={id:id(),title:clean(b.title),subject:clean(b.subject),duration:Number(b.duration),total_marks:Number(b.total_marks)||0,type:clean(b.type||b.subject||b.title).toLowerCase(),mock:clean(b.mock),access_type:b.access_type,question_count:0,created_at:new Date()};await c('exams').insertOne(e);res.status(201).json({success:true,exam:examPublic(e)});}));
 secure('/api/admin/exams',async(req,res)=>res.json({exams:(await c('exams').find().sort({created_at:-1}).limit(500).toArray()).map(examPublic)}));
 app.patch('/api/admin/exams/:id/access',auth,admin,asyncRoute(async(req,res)=>{const access=clean(req.body?.access_type).toLowerCase();if(!['free','paid'].includes(access))return err(res,400,'access_type must be free or paid');const result=await c('exams').findOneAndUpdate({id:req.params.id},{$set:{access_type:access,access_updated_at:new Date(),access_updated_by:uid(req.user)}},{returnDocument:'after'});if(!result)return err(res,404,'Exam not found');res.json({success:true,exam:examPublic(result)});}));
-app.get('/api/exams/catalog',auth,asyncRoute(async(req,res)=>{if(req.user.role!=='student'&&req.user.role!=='admin')return err(res,403,'Login required');const exams=await c('exams').find().sort({created_at:-1}).limit(500).toArray();res.json({success:true,exams:exams.map(examPublic)});}));
+app.patch('/api/admin/exams/:id/edit',auth,admin,asyncRoute(async(req,res)=>{
+  const b=req.body||{};
+  const updates={};
+
+  if(b.title!==undefined){
+    if(typeof b.title!=='string'||!clean(b.title))
+      return err(res,400,'Valid title required');
+    updates.title=clean(b.title);
+  }
+
+  if(b.subject!==undefined){
+    if(typeof b.subject!=='string')
+      return err(res,400,'Invalid subject');
+    updates.subject=clean(b.subject);
+  }
+
+  if(!Object.keys(updates).length)
+    return err(res,400,'No valid changes');
+
+  const previous=await c('exams').findOne({id:req.params.id});
+  if(!previous)return err(res,404,'Exam not found');
+
+  updates.updated_at=new Date();
+  updates.updated_by=uid(req.user);
+
+  const result=await c('exams').findOneAndUpdate(
+    {id:req.params.id},
+    {$set:updates},
+    {returnDocument:'after'}
+  );
+
+  await c('audit').insertOne({
+    action:'exam_details_updated',
+    exam_id:req.params.id,
+    admin_id:uid(req.user),
+    before:{title:previous.title,subject:previous.subject},
+    after:{title:result.title,subject:result.subject},
+    created_at:new Date()
+  });
+
+  res.json({success:true,exam:examPublic(result)});
+}));
+app.patch('/api/admin/exams/:id/archive',auth,admin,asyncRoute(async(req,res)=>{const archived=req.body?.is_archived;if(typeof archived!=='boolean')return err(res,400,'is_archived must be boolean');const result=await c('exams').findOneAndUpdate({id:req.params.id},{$set:{is_archived:archived,archive_updated_at:new Date(),archive_updated_by:uid(req.user)}},{returnDocument:'after'});if(!result)return err(res,404,'Exam not found');res.json({success:true,message:archived?'Exam archived':'Exam restored',exam:{...examPublic(result),is_archived:result.is_archived===true}});}));
+app.get('/api/exams/catalog',auth,asyncRoute(async(req,res)=>{if(req.user.role!=='student'&&req.user.role!=='admin')return err(res,403,'Login required');const exams=await c('exams').find(req.user.role==='admin'?{}:{is_archived:{$ne:true}}).sort({created_at:-1}).limit(500).toArray();res.json({success:true,exams:exams.map(examPublic)});}));
 // Allow only images stored in frontend/assets.
 function questionImagePath(value) {
   const v = clean(value);
@@ -234,7 +277,7 @@ app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
  const examId=clean(req.query.exam_id);
  let exam=examId?await c('exams').findOne({id:examId}):await c('exams').findOne({type:clean(type).toLowerCase(),...(mock?{mock:clean(mock)}:{})},{sort:{created_at:-1}});
  if(!exam&&req.user?.role==='admin'&&!examId)exam=await c('exams').findOne({},{sort:{created_at:-1}});
- if(!exam)return err(res,404,'Exam not found');
+ if(!exam)return err(res,404,'Exam not found');if(exam.is_archived===true && req.user?.role!=='admin')return err(res,404,'Exam not found');
  // Every published exam follows its database setting, regardless of URL access=free/sample/paid.
  if(!req.user)return err(res,401,'Registered student login required');
  if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,exam.type,exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true,exam:examPublic(exam)});
@@ -260,7 +303,7 @@ app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
   }))
 });
 }));
-app.post('/api/exam/session',auth,asyncRoute(async(req,res)=>{const examId=clean(req.body.examId);const exam=await c('exams').findOne({id:examId});if(!exam)return err(res,404,'Exam not found');if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,exam.type,exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true});let s=await c('sessions').findOne({user_id:uid(req.user),exam_id:examId,status:'active',expires_at:{$gt:new Date()}});if(!s){s={id:id(),user_id:uid(req.user),exam_id:examId,answers:{},answer_revision:0,status:'active',created_at:new Date(),expires_at:new Date(Date.now()+exam.duration*60000)};await c('sessions').insertOne(s);}res.json({success:true,attemptId:s.id,expiresAt:iso(s.expires_at),answers:s.answers,answerRevision:s.answer_revision||0});}));
+app.post('/api/exam/session',auth,asyncRoute(async(req,res)=>{const examId=clean(req.body.examId);const exam=await c('exams').findOne({id:examId});if(!exam)return err(res,404,'Exam not found');if(exam.is_archived===true && req.user.role!=='admin')return err(res,404,'Exam not found');if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,exam.type,exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true});let s=await c('sessions').findOne({user_id:uid(req.user),exam_id:examId,status:'active',expires_at:{$gt:new Date()}});if(!s){s={id:id(),user_id:uid(req.user),exam_id:examId,answers:{},answer_revision:0,status:'active',created_at:new Date(),expires_at:new Date(Date.now()+exam.duration*60000)};await c('sessions').insertOne(s);}res.json({success:true,attemptId:s.id,expiresAt:iso(s.expires_at),answers:s.answers,answerRevision:s.answer_revision||0});}));
 app.put('/api/exam/session/:id/answers',auth,asyncRoute(async(req,res)=>{
  const s=await c('sessions').findOne({id:req.params.id,user_id:uid(req.user),status:'active'});
  if(!s||s.expires_at<=new Date())return err(res,409,'Session expired or unavailable');

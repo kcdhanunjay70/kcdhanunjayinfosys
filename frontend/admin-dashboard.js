@@ -182,7 +182,13 @@ async function loadExams() {
         <div class="row">
             <strong>${escapeHtml(e.title)}</strong>
             <div class="muted">ID: ${escapeHtml(e.id)} | Type: ${escapeHtml(e.type || "-")} | Subject: ${escapeHtml(e.subject || "-")} | Duration: ${escapeHtml(e.duration)} mins | Questions: ${escapeHtml(e.question_count || 0)}</div>
-            <div class="muted">Access: <strong>${e.access_type === 'free' ? 'FREE' : 'PAID'}</strong></div>
+            <div class="muted">Access: <strong>${e.access_type === 'free' ? 'FREE' : 'PAID'}</strong> | Status: <strong>${e.is_archived ? 'ARCHIVED' : 'ACTIVE'}</strong></div>
+            <div class="inline-form" style="margin:10px 0;">
+                <input id="exam-title-${safeId(e.id)}" value="${escapeAttribute(e.title || '')}" placeholder="Exam Title" aria-label="Exam title">
+                <input id="exam-subject-${safeId(e.id)}" value="${escapeAttribute(e.subject || '')}" placeholder="Subject" aria-label="Exam subject">
+                <button class="mini-btn" onclick="saveExamDetails(decodeURIComponent('${safeId(e.id)}'))">Save Changes</button>
+                <button class="${e.is_archived ? 'mini-btn' : 'mini-danger'}" onclick="toggleExamArchive(decodeURIComponent('${safeId(e.id)}'),${!e.is_archived})">${e.is_archived ? 'Restore Exam' : 'Archive Exam'}</button>
+            </div>
             <div class="row-actions">
                 <select aria-label="Access type for ${escapeAttribute(e.title)}" id="access-${safeId(e.id)}" style="max-width:220px"><option value="paid" ${e.access_type !== 'free' ? 'selected' : ''}>PAID</option><option value="free" ${e.access_type === 'free' ? 'selected' : ''}>FREE</option></select>
                 <button class="mini-btn" onclick="saveExamAccess(decodeURIComponent('${safeId(e.id)}'))">Save Access</button>
@@ -192,6 +198,47 @@ async function loadExams() {
     `).join("");
 }
 
+async function saveExamDetails(examId) {
+    const title = document.getElementById(`exam-title-${safeId(examId)}`).value.trim();
+    const subject = document.getElementById(`exam-subject-${safeId(examId)}`).value.trim();
+
+    if (!title) {
+        alert('Exam title is required');
+        return;
+    }
+
+    if (!confirm('Save exam title and subject corrections?')) return;
+
+    try {
+        await api(`/api/admin/exams/${encodeURIComponent(examId)}/edit`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ title, subject })
+        });
+        await loadExams();
+        alert('Exam details updated successfully');
+    } catch (err) {
+        alert(err.message);
+    }
+}
+
+async function toggleExamArchive(examId, isArchived) {
+    const action = isArchived ? 'ARCHIVE' : 'RESTORE';
+
+    if (!confirm(`${action} this exam? Existing results and payments will be preserved.`)) return;
+
+    try {
+        await api(`/api/admin/exams/${encodeURIComponent(examId)}/archive`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ is_archived: isArchived })
+        });
+        await loadExams();
+        alert(`Exam ${isArchived ? 'archived' : 'restored'} successfully`);
+    } catch (err) {
+        alert(err.message);
+    }
+}
 async function saveExamAccess(examId) {
     const access_type = document.getElementById(`access-${safeId(examId)}`).value;
     if (!confirm(`Set this exam to ${access_type.toUpperCase()}?`)) return;
