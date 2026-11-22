@@ -518,7 +518,32 @@ app.patch('/api/admin/payment-requests/:id',auth,admin,asyncRoute(async(req,res)
 secure('/api/admin/revenue-summary',async(req,res)=>{const rows=await c('payments').find({},{projection:{screenshot:0}}).sort({created_at:-1}).limit(10000).toArray();res.json({approvedCount:rows.filter(p=>p.status==='paid').length,grossRevenue:rows.filter(p=>p.status==='paid').reduce((n,p)=>n+p.amount,0),pendingCount:rows.filter(p=>p.status==='created').length,rejectedCount:rows.filter(p=>p.status==='failed').length,recent:rows.slice(0,20)});});
 secure('/api/admin/payment-audit',async(req,res)=>res.json({logs:await c('audit').find().sort({created_at:-1}).limit(100).toArray()}));
 secure('/api/admin/database-summary',async(req,res)=>{const names=['users','exams','questions','sessions','results','payments','sample_leads','login_logs','alerts','completions'];res.json({databaseName:db.databaseName,collections:await Promise.all(names.map(async name=>({key:name,label:name,count:await c(name).countDocuments(),note:'MongoDB Atlas collection'})))});});
-secure('/api/admin/students',async(req,res)=>{const us=await c('users').find({role:'student'}).sort({created_at:-1}).limit(500).toArray();res.json({total:await c('users').countDocuments({role:'student'}),students:us.map(cleanUser)});});
+secure('/api/admin/students',async(req,res)=>{
+  const us=await c('users').find({role:'student'}).sort({created_at:-1}).limit(500).toArray();
+  const ids=us.map(uid);
+  const payments=ids.length
+    ? await c('payments').find(
+        {user_id:{$in:ids},status:'paid'},
+        {projection:{user_id:1,exam_type:1,mock:1,exam_title:1}}
+      ).toArray()
+    : [];
+  const byUser=new Map();
+  for(const p of payments){
+    if(!byUser.has(p.user_id))byUser.set(p.user_id,[]);
+    byUser.get(p.user_id).push({
+      exam_type:p.exam_type,
+      mock:p.mock,
+      exam_title:p.exam_title
+    });
+  }
+  res.json({
+    total:await c('users').countDocuments({role:'student'}),
+    students:us.map(u=>{
+      const paid_exams=byUser.get(uid(u))||[];
+      return {...cleanUser(u),is_paid:paid_exams.length>0,paid_exams};
+    })
+  });
+});
 app.post('/api/admin/students',auth,admin,asyncRoute(async(req,res)=>{const u=await createUser(req.body);res.status(201).json({success:true,student:cleanUser(u)});}));
 app.patch('/api/admin/students/bulk-status',auth,admin,asyncRoute(async(req,res)=>{
   const b=req.body||{};
