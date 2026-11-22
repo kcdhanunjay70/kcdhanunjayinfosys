@@ -53,7 +53,40 @@ app.post('/api/auth/register',rate,asyncRoute(async(req,res)=>{const u=await cre
 app.post('/api/auth/login',rate,asyncRoute(async(req,res)=>{const {email,password,role}=req.body||{};if(typeof email!=='string'||typeof password!=='string')return err(res,400,'Credentials required');const key=clean(email);const u=await c('users').findOne({$or:[{email:key.toLowerCase()},{phone:key},{username:key}]});if(!u||u.is_active===false||!await bcrypt.compare(password,u.passwordHash)||(role&&role!==u.role))return err(res,401,'Invalid credentials');await c('login_logs').insertOne({id:id(),user_id:uid(u),name:u.name,email:u.email,ip_address:req.ip,login_time:new Date()});res.json({success:true,token:tokenFor(u),user:pub(u)});}));
 app.get('/api/auth/verify',auth,(req,res)=>res.json({success:true,user:pub(req.user)}));
 app.patch('/api/profile',auth,rate,asyncRoute(async(req,res)=>{
-  if(req.user.role!=='student')return err(res,403,'Student access required');
+  if(req.user.role!=='student' && req.user.role!=='admin')
+  return err(res,403,'Profile access denied');
+
+if(req.user.role==='admin'){
+  const body=req.body;
+
+  if(!body || typeof body!=='object' || Array.isArray(body) ||
+     Object.keys(body).length!==2 ||
+     typeof body.currentPassword!=='string' ||
+     typeof body.phone!=='string')
+    return err(res,400,'Phone and current password required');
+
+  if(!await bcrypt.compare(body.currentPassword,req.user.passwordHash))
+    return err(res,403,'Incorrect current password');
+
+  const phone=clean(body.phone);
+  if(!validPhone(phone))
+    return err(res,400,'Mobile number must contain 10 digits');
+
+  try{
+    const updated=await c('users').findOneAndUpdate(
+      {_id:req.user._id,role:'admin',is_active:{$ne:false}},
+      {$set:{phone,updated_at:new Date()}},
+      {returnDocument:'after'}
+    );
+
+    if(!updated)return err(res,404,'Admin not found');
+    return res.json({success:true,user:pub(updated)});
+  }catch(e){
+    if(e.code===11000)
+      return err(res,409,'Mobile number already registered');
+    throw e;
+  }
+}
   const body=req.body;
   if(!body||typeof body!=='object'||Array.isArray(body))return err(res,400,'Invalid profile data');
   const allowed=['name','email','phone','currentPassword'];
