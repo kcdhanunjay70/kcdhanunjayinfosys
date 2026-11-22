@@ -291,6 +291,15 @@ button, .link-btn {
 <input id="studentPassword" placeholder="Initial password" type="password"/>
 <button onclick="createStudent()">Create Student</button>
 </div>
+<div id="bulkStudentControls" style="margin:14px 0;">
+  <div class="inline-form">
+    <button type="button" onclick="selectAllStudents()">Select All</button>
+    <button type="button" onclick="clearStudentSelection()">Clear Selection</button>
+    <button type="button" onclick="bulkUpdateStudents(false)">Bulk Disable</button>
+    <button type="button" onclick="bulkUpdateStudents(true)">Bulk Enable</button>
+  </div>
+  <p class="muted" id="selectedStudentCount">0 students selected</p>
+</div>
 <div class="list" id="students"></div>
 </section>
 <section class="card wide">
@@ -315,6 +324,6 @@ button, .link-btn {
 <div class="list" id="examCompletions"></div>
 </section>
 </main>
-<script src="admin-dashboard.js?v=19"></script>
+<script src="admin-dashboard.js?v=20"></script>
 <a href="/admin-payments.html" style="position:fixed;bottom:16px;right:16px;z-index:9999;background:#123;color:white;padding:12px;border-radius:8px">Payment Approvals</a><a href="/admin-results.html" style="position:fixed;bottom:70px;right:16px;z-index:9999;background:#123;color:white;padding:12px;border-radius:8px">Exam Results</a></body>
 </html>

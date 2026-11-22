@@ -289,12 +289,92 @@ async function loadDatabaseSummary() {
     ` : `<div class="muted">No database summary available.</div>`;
 }
 
+function selectedStudentIds() {
+    return Array.from(
+        document.querySelectorAll(".bulk-student-checkbox:checked")
+    ).map((checkbox) => checkbox.value);
+}
+
+function updateSelectedStudentCount() {
+    const count = selectedStudentIds().length;
+    document.getElementById("selectedStudentCount").textContent =
+        `${count} student${count === 1 ? "" : "s"} selected`;
+}
+
+function selectAllStudents() {
+    const checkboxes = Array.from(document.querySelectorAll(".bulk-student-checkbox"));
+    checkboxes.forEach((checkbox, index) => {
+        checkbox.checked = index < 100;
+    });
+    updateSelectedStudentCount();
+    if (checkboxes.length > 100) {
+        alert("Only the first 100 students were selected. Maximum 100 per operation.");
+    }
+}
+
+function clearStudentSelection() {
+    document.querySelectorAll(".bulk-student-checkbox").forEach((checkbox) => {
+        checkbox.checked = false;
+    });
+    updateSelectedStudentCount();
+}
+
+let studentBulkBusy = false;
+
+async function bulkUpdateStudents(isActive) {
+    if (studentBulkBusy) return;
+    const studentIds = selectedStudentIds();
+
+    if (!studentIds.length) {
+        alert("Select at least one student");
+        return;
+    }
+
+    if (studentIds.length > 100) {
+        alert("Select a maximum of 100 students per operation");
+        return;
+    }
+
+    const action = isActive ? "enable" : "disable";
+
+    if (!confirm(`Are you sure you want to ${action} ${studentIds.length} selected student(s)?`)) {
+        return;
+    }
+
+    studentBulkBusy = true;
+    document.querySelectorAll("#bulkStudentControls button").forEach(button => {
+        button.disabled = true;
+    });
+
+    try {
+        const result = await api("/api/admin/students/bulk-status", {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                student_ids: studentIds,
+                is_active: isActive
+            })
+        });
+
+        await loadStudents();
+
+        alert(`${result.modified} student account(s) updated successfully`);
+    } catch (err) {
+        alert(err.message);
+    } finally {
+        studentBulkBusy = false;
+        document.querySelectorAll("#bulkStudentControls button").forEach(button => {
+            button.disabled = false;
+        });
+    }
+}
 async function loadStudents() {
     const data = await api("/api/admin/students");
     document.getElementById("studentCount").innerText = data.total ?? data.students.length;
     document.getElementById("students").innerHTML = data.students.map((s) => `
         <div class="row">
             <div class="row-top">
+                <label><input type="checkbox" class="bulk-student-checkbox" value="${escapeAttribute(s.id)}" onchange="updateSelectedStudentCount()"> Select</label>
                 <strong>${escapeHtml(s.name)}</strong>
                 <span class="muted">${s.is_active === false ? "Disabled" : "Active"} | ${s.is_paid ? "Paid" : "Not paid"}</span>
             </div>
@@ -316,6 +396,7 @@ async function loadStudents() {
             </div>
         </div>
     `).join("");
+    updateSelectedStudentCount();
 }
 
 async function createStudent() {

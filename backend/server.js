@@ -487,7 +487,65 @@ secure('/api/admin/payment-audit',async(req,res)=>res.json({logs:await c('audit'
 secure('/api/admin/database-summary',async(req,res)=>{const names=['users','exams','questions','sessions','results','payments','sample_leads','login_logs','alerts','completions'];res.json({databaseName:db.databaseName,collections:await Promise.all(names.map(async name=>({key:name,label:name,count:await c(name).countDocuments(),note:'MongoDB Atlas collection'})))});});
 secure('/api/admin/students',async(req,res)=>{const us=await c('users').find({role:'student'}).sort({created_at:-1}).limit(500).toArray();res.json({total:await c('users').countDocuments({role:'student'}),students:us.map(cleanUser)});});
 app.post('/api/admin/students',auth,admin,asyncRoute(async(req,res)=>{const u=await createUser(req.body);res.status(201).json({success:true,student:cleanUser(u)});}));
-app.patch('/api/admin/students/:id',auth,admin,asyncRoute(async(req,res)=>{if(!ObjectId.isValid(req.params.id))return err(res,400,'Invalid ID');const updates={};for(const field of ['name','email','phone'])if(req.body[field]!==undefined)updates[field]=clean(req.body[field]);if(updates.email)updates.email=updates.email.toLowerCase();if(updates.email&&!validEmail(updates.email)||updates.phone&&!validPhone(updates.phone))return err(res,400,'Invalid email or phone');if(typeof req.body.is_active==='boolean')updates.is_active=req.body.is_active;if(req.body.password){if(String(req.body.password).length<8)return err(res,400,'Password must be at least 8 characters');updates.passwordHash=await bcrypt.hash(req.body.password,12);}if(!Object.keys(updates).length)return err(res,400,'No changes');const result=await c('users').updateOne({_id:new ObjectId(req.params.id),role:'student'},{$set:updates});if(!result.matchedCount)return err(res,404,'Student not found');res.json({success:true});}));
+app.patch('/api/admin/students/bulk-status',auth,admin,asyncRoute(async(req,res)=>{
+  const b=req.body||{};
+  const ids=b.student_ids;
+  const active=b.is_active;
+
+  if(!Array.isArray(ids)||ids.length<1||ids.length>100)
+    return err(res,400,'Select 1 to 100 students');
+
+  if(typeof active!=='boolean')
+    return err(res,400,'is_active must be boolean');
+
+  if(!ids.every(x=>typeof x==='string'&&ObjectId.isValid(x)))
+    return err(res,400,'Invalid student ID');
+
+  const uniqueIds=[...new Set(ids.map(x=>new ObjectId(x).toHexString()))];
+
+  if(uniqueIds.length!==ids.length)
+    return err(res,400,'Duplicate student IDs');
+
+  const objectIds=uniqueIds.map(x=>new ObjectId(x));
+
+  const students=await c('users').find({
+    _id:{$in:objectIds},
+    role:'student'
+  }).project({_id:1}).toArray();
+
+  if(students.length!==uniqueIds.length)
+    return err(res,404,'One or more students not found');
+
+  const now=new Date();
+
+  const result=await c('users').updateMany({
+    _id:{$in:objectIds},
+    role:'student'
+  },{
+    $set:{is_active:active,updated_at:now}
+  });
+
+  try {
+  await c('audit').insertOne({
+    action:active?'students_bulk_enabled':'students_bulk_disabled',
+    admin_id:uid(req.user),
+    student_ids:uniqueIds,
+    matched_count:result.matchedCount,
+    modified_count:result.modifiedCount,
+    created_at:now
+  });
+  } catch (auditError) {
+    console.error('Bulk student audit logging failed:', auditError);
+  }
+
+  res.json({
+    success:true,
+    matched:result.matchedCount,
+    modified:result.modifiedCount,
+    is_active:active
+  });
+}));
+app.patch('/api/admin/students/:id',auth,admin,asyncRoute(async(req,res)=>{if(!ObjectId.isValid(req.params.id))return err(res,400,'Invalid ID');const updates={};for(const field of ['name','email','phone'])if(req.body[field]!==undefined)updates[field]=clean(req.body[field]);if(updates.email)updates.email=updates.email.toLowerCase();if(updates.email&&!validEmail(updates.email)||updates.phone&&!validPhone(updates.phone))return err(res,400,'Invalid email or phone');if(typeof req.body.is_active==='boolean')updates.is_active=req.body.is_active;if(req.body.password){if(String(req.body.password).length<8)return err(res,400,'Password must be at least 8 characters');updates.passwordHash=await bcrypt.hash(req.body.password,12);}if(!Object.keys(updates).length)return err(res,400,'No changes');const result=await c('users').updateOne({_id:new ObjectId(req.params.id),role:'student'},{$set:updates,...(updates.passwordHash?{$inc:{tokenVersion:1}}:{})});if(!result.matchedCount)return err(res,404,'Student not found');res.json({success:true});}));
 app.delete('/api/admin/students/:id',auth,admin,asyncRoute(async(req,res)=>{if(!ObjectId.isValid(req.params.id))return err(res,400,'Invalid ID');const result=await c('users').deleteOne({_id:new ObjectId(req.params.id),role:'student'});res.json({success:true,deleted:result.deletedCount});}));
 for(const [route,collection,key] of [['sample-leads','sample_leads','leads'],['login-logs','login_logs','logs'],['cheating-alerts','alerts','alerts'],['exam-completions','completions','completions']]){secure(`/api/admin/${route}`,async(req,res)=>res.json({[key]:await c(collection).find().sort({created_at:-1}).limit(200).toArray()}));app.delete(`/api/admin/${route}`,auth,admin,asyncRoute(async(req,res)=>{await c(collection).deleteMany({});res.json({success:true});}));app.delete(`/api/admin/${route}/:id`,auth,admin,asyncRoute(async(req,res)=>{await c(collection).deleteOne({id:req.params.id});res.json({success:true});}));}
 app.delete('/api/admin/dashboard-data',auth,admin,asyncRoute(async(req,res)=>{for(const name of ['login_logs','alerts','completions'])await c(name).deleteMany({});res.json({success:true});}));
