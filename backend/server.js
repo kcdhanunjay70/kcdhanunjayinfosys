@@ -352,6 +352,8 @@ function normalizeQuestion(b, examId) {
     exam_id: examId,
     question: clean(b.question),
     options,
+    questionTranslations: Object.fromEntries(['en','te','hi'].filter(k => typeof b.questionTranslations?.[k] === 'string' && b.questionTranslations[k].trim()).map(k => [k, clean(b.questionTranslations[k])])),
+    optionTranslations: Object.fromEntries(['en','te','hi'].filter(k => Array.isArray(b.optionTranslations?.[k]) && b.optionTranslations[k].length === 4).map(k => [k, b.optionTranslations[k].map(clean)])),
     correct_answer: answer,
     marks,
     questionImages,
@@ -415,7 +417,7 @@ app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
   ...examPublic(exam),
   actualType: exam.type,
   questions: questions.map(({
-    id, question, options, questionImages, optionImages, marks
+    id, question, options, questionTranslations, optionTranslations, questionImages, optionImages, marks
   }) => ({
     id,
     question,
@@ -423,6 +425,8 @@ app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
     questionImages: questionImages || [],
     optionImages: optionImages || [[], [], [], []],
     marks: marks || 1,
+    questionTranslations: questionTranslations || {},
+    optionTranslations: optionTranslations || {},
     optionLabels: ['A', 'B', 'C', 'D'],
     ...(exam.id === LEGACY_FREE_EXAM_ID
       ? (ARE_TRANSLATIONS[question] || {})
