@@ -268,6 +268,40 @@ app.patch('/api/admin/exams/:id/edit',auth,admin,asyncRoute(async(req,res)=>{
   res.json({success:true,exam:examPublic(result)});
 }));
 app.patch('/api/admin/exams/:id/archive',auth,admin,asyncRoute(async(req,res)=>{const archived=req.body?.is_archived;if(typeof archived!=='boolean')return err(res,400,'is_archived must be boolean');const result=await c('exams').findOneAndUpdate({id:req.params.id},{$set:{is_archived:archived,archive_updated_at:new Date(),archive_updated_by:uid(req.user)}},{returnDocument:'after'});if(!result)return err(res,404,'Exam not found');res.json({success:true,message:archived?'Exam archived':'Exam restored',exam:{...examPublic(result),is_archived:result.is_archived===true}});}));
+app.delete('/api/admin/exams/:id',auth,admin,asyncRoute(async(req,res)=>{
+  const examId=clean(req.params.id);
+  const exam=await c('exams').findOne({id:examId});
+  if(!exam)return err(res,404,'Exam not found');
+
+  if(examId===LEGACY_FREE_EXAM_ID)
+    return err(res,409,'Legacy free exam is protected');
+
+  if(exam.is_archived!==true)
+    return err(res,409,'Archive the exam before deleting it');
+
+  const [result,session,payment]=await Promise.all([
+    c('results').findOne({exam_id:examId},{projection:{_id:1}}),
+    c('sessions').findOne({exam_id:examId},{projection:{_id:1}}),
+    c('payments').findOne({
+      exam_type:exam.type,
+      mock:exam.mock||''
+    },{projection:{_id:1}})
+  ]);
+
+  if(result||session||payment)
+    return err(res,409,'Exam has results, attempts or linked payments. Archive it instead.');
+
+  // Remove exam from catalog before deleting its questions.
+  const deleted=await c('exams').deleteOne({id:examId});
+  if(!deleted.deletedCount)return err(res,409,'Exam could not be deleted');
+
+  const questions=await c('questions').deleteMany({exam_id:examId});
+  res.json({
+    success:true,
+    message:'Exam deleted successfully',
+    deletedQuestions:questions.deletedCount
+  });
+}));
 app.get('/api/exams/catalog',auth,asyncRoute(async(req,res)=>{if(req.user.role!=='student'&&req.user.role!=='admin')return err(res,403,'Login required');const exams=await c('exams').find(req.user.role==='admin'?{}:{is_archived:{$ne:true}}).sort({created_at:-1}).limit(500).toArray();res.json({success:true,exams:exams.map(examPublic)});}));
 // Allow only images stored in frontend/assets.
 function questionImagePath(value) {
