@@ -276,6 +276,9 @@ app.delete('/api/admin/exams/:id',auth,admin,asyncRoute(async(req,res)=>{
   if(examId===LEGACY_FREE_EXAM_ID)
     return err(res,409,'Legacy free exam is protected');
 
+  if(exam.is_archived!==true)
+    return err(res,409,'Archive the exam before deleting it');
+
   const [result,session,payment]=await Promise.all([
     c('results').findOne({exam_id:examId},{projection:{_id:1}}),
     c('sessions').findOne({exam_id:examId},{projection:{_id:1}}),
