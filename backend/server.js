@@ -13,14 +13,108 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import multer from 'multer';
 import compression from 'compression';
+import nodemailer from 'nodemailer';
+import {buildResultEmail} from './result-notifications.js';
 
 const {MONGODB_URI,JWT_SECRET,ADMIN_EMAIL,ADMIN_PASSWORD,PORT=3000}=process.env;
 if(!MONGODB_URI || !JWT_SECRET || JWT_SECRET.length<32) throw Error('Set MONGODB_URI and JWT_SECRET (32+ characters)');
+const smtpTransporter = process.env.SMTP_USER && process.env.SMTP_APP_PASSWORD
+  ? nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true,
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_APP_PASSWORD
+      }
+    })
+  : null;
+function resultWhatsAppUrl(result, rank, participants) {
+  const text = [
+    'KCDHANUNJAY INFOSYS - Exam Result',
+    `Student: ${result.name}`,
+    `Student ID: ${result.studentId}`,
+    `Exam: ${result.exam}`,
+    `Score: ${result.score}/${result.total}`,
+    `Percentage: ${result.percentage}%`,
+    `Rank: ${rank} of ${participants}`
+  ].join('\n');
+
+  return `https://wa.me/919494705353?text=${encodeURIComponent(text)}`;
+}
+async function sendResultEmails(result, rank, participants) {
+  if (!smtpTransporter) {
+    console.warn('Result emails skipped: SMTP credentials not configured');
+    return;
+  }
+
+  const messages = buildResultEmail(result, rank, participants);
+  const sender = process.env.SMTP_USER;
+  const adminEmail = process.env.RESULT_ADMIN_EMAIL || process.env.ADMIN_EMAIL;
+
+  const recipients = [
+    {
+      label: 'student',
+      to: result.email,
+      subject: messages.studentSubject,
+      text: messages.studentText
+    },
+    {
+      label: 'admin',
+      to: adminEmail,
+      subject: messages.adminSubject,
+      text: messages.adminText
+    }
+  ];
+
+  for (const recipient of recipients) {
+    if (!recipient.to) continue;
+
+    const notification = {
+      result_id: result.id,
+      recipient: recipient.label,
+      status: 'sending',
+      created_at: new Date()
+    };
+
+    try {
+      await c('result_notifications').insertOne(notification);
+    } catch (claimError) {
+      if (claimError.code === 11000) continue;
+      console.error('Notification tracking failed:', claimError);
+      continue;
+    }
+
+    try {
+      await smtpTransporter.sendMail({
+        from: sender,
+        to: recipient.to,
+        subject: recipient.subject,
+        text: recipient.text
+      });
+      console.log(`SMTP accepted result email for ${recipient.label}`);
+      try {
+        await c('result_notifications').updateOne(
+          {result_id: result.id, recipient: recipient.label},
+          {$set: {status: 'sent', sent_at: new Date()}}
+        );
+      } catch (trackingError) {
+        console.error(`Email accepted but status update failed for ${recipient.label}:`, trackingError.message);
+      }
+    } catch (error) {
+      await c('result_notifications').updateOne(
+        {result_id: result.id, recipient: recipient.label},
+        {$set: {status: 'failed', failed_at: new Date(), error: String(error.message).slice(0, 300)}}
+      ).catch(e => console.error('Notification status update failed:', e.message));
+      console.error(`Result email failed for ${recipient.label}:`, error.message);
+    }
+  }
+}
 const mongo=new MongoClient(MONGODB_URI,{serverSelectionTimeoutMS:12000});
 await mongo.connect();
 const db=mongo.db(process.env.DB_NAME||'kcdhanunjayinfosys');
 const c=name=>db.collection(name);
-const indexes=[['users',{email:1},{unique:true}],['users',{phone:1},{unique:true,sparse:true}],['users',{username:1},{unique:true}],['exams',{type:1,mock:1}],['questions',{exam_id:1}],['sessions',{user_id:1,exam_id:1,status:1}],['results',{exam_id:1,score:-1,created_at:1}],['results',{attempt_id:1},{unique:true,partialFilterExpression:{attempt_id:{$type:'string'}}}],['payments',{user_id:1,exam_type:1,mock:1}],['payments',{reference_id:1},{unique:true}],['audit',{created_at:-1}]];
+const indexes=[['users',{email:1},{unique:true}],['users',{phone:1},{unique:true,sparse:true}],['users',{username:1},{unique:true}],['exams',{type:1,mock:1}],['questions',{exam_id:1}],['sessions',{user_id:1,exam_id:1,status:1}],['results',{exam_id:1,score:-1,created_at:1}],['results',{attempt_id:1},{unique:true,partialFilterExpression:{attempt_id:{$type:'string'}}}],['payments',{user_id:1,exam_type:1,mock:1}],['payments',{reference_id:1},{unique:true}],['audit',{created_at:-1}],['result_notifications',{result_id:1,recipient:1},{unique:true}]];
 await Promise.all(indexes.map(([name,key,options])=>c(name).createIndex(key,options||{})));
 if(ADMIN_EMAIL&&ADMIN_PASSWORD){const email=ADMIN_EMAIL.trim().toLowerCase();if(!await c('users').findOne({email})){await c('users').insertOne({name:'Administrator',email,username:`admin_${randomUUID().slice(0,8)}`,passwordHash:await bcrypt.hash(ADMIN_PASSWORD,12),role:'admin',is_active:true,created_at:new Date()});console.log('Initial admin created');}}
 const ARE_TRANSLATIONS = JSON.parse(readFileSync(new URL('./kcdi-are-translations.json', import.meta.url), 'utf8'));
@@ -383,7 +477,7 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
   if (previous) {
     const participants = await c('results').countDocuments({ exam_id: exam.id });
     const rank = 1 + await c('results').countDocuments({ exam_id: exam.id, score: { $gt: previous.score } });
-    return res.json({success:true,alreadySubmitted:true,score:previous.score,total:previous.total,percentage:previous.percentage,rank,participants,risk:previous.risk,message:'Result already saved'});
+    return res.json({success:true,alreadySubmitted:true,score:previous.score,total:previous.total,percentage:previous.percentage,rank,participants,risk:previous.risk,whatsappAdminUrl:resultWhatsAppUrl(previous,rank,participants),message:'Result already saved'});
   }
 
   if (
@@ -447,7 +541,7 @@ const maximumMarks = qs.reduce(
     const participants = await c('results').countDocuments({exam_id:exam.id});
     const rank = 1 + await c('results').countDocuments({exam_id:exam.id,score:{$gt:existing.score}});
     await c('sessions').updateOne({id:s.id,user_id:uid(req.user),status:'active'},{$set:{status:'finished',finished_at:new Date()}});
-    return res.json({success:true,alreadySubmitted:true,score:existing.score,total:existing.total,percentage:existing.percentage,rank,participants,risk:existing.risk,message:'Result already saved'});
+    return res.json({success:true,alreadySubmitted:true,score:existing.score,total:existing.total,percentage:existing.percentage,rank,participants,risk:existing.risk,whatsappAdminUrl:resultWhatsAppUrl(existing,rank,participants),message:'Result already saved'});
   }
 
   // If finalization fails transiently, the result is still durable and a
@@ -480,6 +574,21 @@ const maximumMarks = qs.reduce(
     console.error('Result persisted; ancillary ranking/completion write failed',auxError);
   }
 
+  const whatsappText = [
+    'KCDHANUNJAY INFOSYS - Exam Result',
+    `Student: ${result.name}`,
+    `Student ID: ${result.studentId}`,
+    `Exam: ${result.exam}`,
+    `Score: ${result.score}/${result.total}`,
+    `Percentage: ${result.percentage}%`,
+    `Rank: ${rank} of ${participants}`
+  ].join('\n');
+  const whatsappAdminUrl = `https://wa.me/919494705353?text=${encodeURIComponent(whatsappText)}`;
+
+  void sendResultEmails(result, rank, participants).catch(error => {
+    console.error('Result notification dispatch failed:', error.message);
+  });
+
   res.json({
     success: true,
     score,
@@ -488,6 +597,7 @@ const maximumMarks = qs.reduce(
     rank,
     participants,
     risk: result.risk,
+    whatsappAdminUrl,
     message: 'Result saved'
   });
 }));

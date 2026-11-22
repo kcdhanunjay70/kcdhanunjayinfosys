@@ -564,7 +564,8 @@
       <span class="pill" id="timer">--:--</span>
       <span class="pill" id="answeredPill">Answered 0/0</span>
       <span class="pill" id="saveStatus" role="status" aria-live="polite">Connecting...</span>
-      <button class="btn secondary" type="button" onclick="window.location.href='/'">Home</button>
+      <button class="btn secondary" type="button" id="examHome">Student Home</button>
+      <button class="btn secondary" type="button" id="examLogout">Logout</button>
       <button class="btn" type="button" id="submitTop">Submit</button>
     </div>
   </header>
@@ -609,6 +610,19 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    function confirmExamExit() {
+      return submitted || !examUnlocked || window.confirm("Your exam is still active. Leaving may interrupt your attempt. Continue?");
+    }
+    document.getElementById("examHome").addEventListener("click", function() {
+      if (confirmExamExit()) window.location.assign("/dashboard.html");
+    });
+    document.getElementById("examLogout").addEventListener("click", function() {
+      if (!confirmExamExit()) return;
+      ["token", "user", "studentToken", "adminToken"].forEach(function(key) {
+        localStorage.removeItem(key);
+      });
+      window.location.replace("/");
+    });
     const params = new URLSearchParams(window.location.search);
     const requestedType = params.get("type") || "ap-eapcet";
     const requestedMock = params.get("mock") || "";

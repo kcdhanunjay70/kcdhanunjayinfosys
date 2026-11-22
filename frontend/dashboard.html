@@ -14,7 +14,7 @@
 </head>
 <body>
 <div class="portal" id="portal" hidden>
-<header class="top"><a class="brand" href="/">KCDHANUNJAY INFOSYS</a><div class="actions"><span class="pill">Student Portal</span><button class="logout" id="logout" type="button">Logout</button></div></header>
+<header class="top"><a class="brand" href="/">KCDHANUNJAY INFOSYS</a><div class="actions"><span class="pill">Student Portal</span><a class="logout" href="/dashboard.html" style="text-decoration:none">Student Home</a><button class="logout" id="logout" type="button">Logout</button></div></header>
 <main>
 <section class="hero"><h1>Welcome, <span id="studentName">Student</span>!</h1><p class="muted">Explore your courses, projects and mock examinations from one place.</p><p><strong>Student ID:</strong> <span id="studentId">—</span></p><p id="studentEmail" class="muted"></p></section>
 <section class="stats-grid" id="dashboardStats" aria-label="Student performance summary"><div class="stat-card"><span>Available Exams</span><strong id="statAvailable">-</strong></div><div class="stat-card"><span>Completed Attempts (Latest 100)</span><strong id="statCompleted">-</strong></div><div class="stat-card"><span>Average Score (Latest 100)</span><strong id="statAverage">-</strong></div><div class="stat-card"><span>Best Score (Latest 100)</span><strong id="statBest">-</strong></div></section>
@@ -41,7 +41,7 @@ const token=localStorage.getItem('token');
 const checking=document.getElementById('checking');
 function goLogin(){localStorage.removeItem('token');localStorage.removeItem('user');location.replace('/login.html');}
 if(!token){goLogin();return;}
-document.getElementById('logout').addEventListener('click',goLogin);
+document.getElementById('logout').addEventListener('click',function(){localStorage.removeItem('token');localStorage.removeItem('user');localStorage.removeItem('studentToken');location.replace('/');});
 
 function renderExamAnalytics(results){
  const chart=document.getElementById('examAnalyticsChart');
