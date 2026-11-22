@@ -191,6 +191,7 @@ async function loadExams() {
             </div>
             <div class="row-actions">
                 <select aria-label="Access type for ${escapeAttribute(e.title)}" id="access-${safeId(e.id)}" style="max-width:220px"><option value="paid" ${e.access_type !== 'free' ? 'selected' : ''}>PAID</option><option value="free" ${e.access_type === 'free' ? 'selected' : ''}>FREE</option></select>
+                <button class="mini-danger" onclick="deleteExam(decodeURIComponent('${safeId(e.id)}'), document.getElementById('exam-title-${safeId(e.id)}').value)">Delete Exam</button>
                 <button class="mini-btn" onclick="saveExamAccess(decodeURIComponent('${safeId(e.id)}'))">Save Access</button>
                 <a class="mini-btn" href="/exam.html?access=${e.access_type === 'free' ? 'free' : 'paid'}&exam_id=${encodeURIComponent(e.id)}&type=${encodeURIComponent(e.type || '')}" target="_blank">Open Exam</a>
             </div>
@@ -198,6 +199,24 @@ async function loadExams() {
     `).join("");
 }
 
+async function deleteExam(examId, examTitle) {
+    const confirmed = prompt(
+        `PERMANENT DELETE: ${examTitle}\n\nType DELETE to confirm:`
+    );
+
+    if (confirmed !== "DELETE") return;
+
+    try {
+        const result = await api(
+            `/api/admin/exams/${encodeURIComponent(examId)}`,
+            { method: "DELETE" }
+        );
+        alert(result.message);
+        await loadExams();
+    } catch (error) {
+        alert(error.message);
+    }
+}
 async function saveExamDetails(examId) {
     const title = document.getElementById(`exam-title-${safeId(examId)}`).value.trim();
     const subject = document.getElementById(`exam-subject-${safeId(examId)}`).value.trim();
@@ -706,6 +725,3 @@ async function init() {
 }
 
 init();
-
-
-
