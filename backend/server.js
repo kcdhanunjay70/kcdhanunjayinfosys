@@ -221,8 +221,23 @@ app.patch('/api/auth/change-password',auth,rate,asyncRoute(async(req,res)=>{
 const LEGACY_FREE_EXAM_ID='1abd5f62-531d-4d29-9881-a28c92a515b3';
 const accessType=e=>e?.access_type==='free'||(!e?.access_type&&e?.id===LEGACY_FREE_EXAM_ID)?'free':'paid';
 const isFreeRegisteredExam=e=>Boolean(e&&accessType(e)==='free');
-const examPublic=e=>({id:e.id,title:e.title,subject:e.subject,duration:e.duration,total_marks:e.total_marks,type:e.type,mock:e.mock,question_count:e.question_count||0,access_type:accessType(e),is_archived:e.is_archived===true,created_at:e.created_at});
-app.post('/api/admin/create-exam',auth,admin,asyncRoute(async(req,res)=>{const b=req.body||{};if(!clean(b.title)||!(Number(b.duration)>0&&Number(b.duration)<=480))return err(res,400,'Title and duration (1-480 minutes) required');if(!['free','paid'].includes(b.access_type))return err(res,400,'Choose FREE or PAID exam access');const e={id:id(),title:clean(b.title),subject:clean(b.subject),duration:Number(b.duration),total_marks:Number(b.total_marks)||0,type:clean(b.type||b.subject||b.title).toLowerCase(),mock:clean(b.mock),access_type:b.access_type,question_count:0,created_at:new Date()};await c('exams').insertOne(e);res.status(201).json({success:true,exam:examPublic(e)});}));
+
+function validateRequiredLanguages(value){
+  if(!Array.isArray(value) ||
+     !value.length ||
+     value.some(x=>typeof x!=='string' || !['en','te','hi'].includes(x)) ||
+     new Set(value).size!==value.length ||
+     !value.includes('en')){
+    throw Object.assign(
+      new Error('required_languages must contain en and may include te, hi without duplicates'),
+      {status:400}
+    );
+  }
+  return value;
+}
+
+const examPublic=e=>({id:e.id,title:e.title,subject:e.subject,duration:e.duration,total_marks:e.total_marks,type:e.type,mock:e.mock,question_count:e.question_count||0,required_languages:e.required_languages||['en'],access_type:accessType(e),is_archived:e.is_archived===true,created_at:e.created_at});
+app.post('/api/admin/create-exam',auth,admin,asyncRoute(async(req,res)=>{const b=req.body||{};if(!clean(b.title)||!(Number(b.duration)>0&&Number(b.duration)<=480))return err(res,400,'Title and duration (1-480 minutes) required');if(!['free','paid'].includes(b.access_type))return err(res,400,'Choose FREE or PAID exam access');const e={id:id(),title:clean(b.title),subject:clean(b.subject),duration:Number(b.duration),total_marks:Number(b.total_marks)||0,type:clean(b.type||b.subject||b.title).toLowerCase(),mock:clean(b.mock),access_type:b.access_type,required_languages:validateRequiredLanguages(b.required_languages??['en']),question_count:0,created_at:new Date()};await c('exams').insertOne(e);res.status(201).json({success:true,exam:examPublic(e)});}));
 secure('/api/admin/exams',async(req,res)=>res.json({exams:(await c('exams').find().sort({created_at:-1}).limit(500).toArray()).map(examPublic)}));
 app.patch('/api/admin/exams/:id/access',auth,admin,asyncRoute(async(req,res)=>{const access=clean(req.body?.access_type).toLowerCase();if(!['free','paid'].includes(access))return err(res,400,'access_type must be free or paid');const result=await c('exams').findOneAndUpdate({id:req.params.id},{$set:{access_type:access,access_updated_at:new Date(),access_updated_by:uid(req.user)}},{returnDocument:'after'});if(!result)return err(res,404,'Exam not found');res.json({success:true,exam:examPublic(result)});}));
 app.patch('/api/admin/exams/:id/edit',auth,admin,asyncRoute(async(req,res)=>{
@@ -239,6 +254,10 @@ app.patch('/api/admin/exams/:id/edit',auth,admin,asyncRoute(async(req,res)=>{
     if(typeof b.subject!=='string')
       return err(res,400,'Invalid subject');
     updates.subject=clean(b.subject);
+  }
+
+  if(b.required_languages!==undefined){
+    updates.required_languages=validateRequiredLanguages(b.required_languages);
   }
 
   if(!Object.keys(updates).length)
@@ -395,7 +414,109 @@ function normalizeQuestion(b, examId) {
     created_at: new Date()
   };
 }
-async function insertQuestions(examId,items){const e=await c('exams').findOne({id:examId});if(!e)throw Object.assign(new Error('Exam not found'),{status:404});if(!Array.isArray(items)||!items.length||items.length>1000)throw Object.assign(new Error('Provide 1-1000 questions'),{status:400});const qs=items.map(q=>normalizeQuestion(q,examId));await c('questions').insertMany(qs);await c('exams').updateOne({id:examId},{$inc:{question_count:qs.length}});return qs.length;}
+async function insertQuestions(examId,items){const e=await c('exams').findOne({id:examId});if(!e)throw Object.assign(new Error('Exam not found'),{status:404});if(!Array.isArray(items)||!items.length||items.length>1000)throw Object.assign(new Error('Provide 1-1000 questions'),{status:400});const examLanguages=e.required_languages||['en'];
+const requiredBatchLanguages=['te','hi'].filter(lang=>
+  examLanguages.includes(lang) ||
+  items.some(q=>
+    Boolean(q.questionTranslations?.[lang] ?? q['question_'+lang]) ||
+    Boolean(q.optionTranslations?.[lang]) ||
+    ['a','b','c','d'].some(letter=>
+      Boolean(q['option_'+letter+'_'+lang])
+    )
+  )
+);
+const qs=items.map((q,index)=>{
+  const normalized=normalizeQuestion(q,examId);
+
+  for(const lang of ['te','hi']){
+    const questionText=q.questionTranslations?.[lang] ?? q['question_'+lang];
+
+    const optionTexts=q.optionTranslations?.[lang] ??
+      ['a','b','c','d'].map(letter=>q['option_'+letter+'_'+lang]);
+
+    const hasQuestion=typeof questionText==='string' && questionText.trim();
+
+    const hasOptions=Array.isArray(optionTexts) &&
+      optionTexts.length===4 &&
+      optionTexts.every(x=>typeof x==='string' && x.trim());
+
+    if((requiredBatchLanguages.includes(lang) || hasQuestion || hasOptions) &&
+      (!hasQuestion ||
+       !hasOptions ||
+       !normalized.questionTranslations?.[lang] ||
+       !Array.isArray(normalized.optionTranslations?.[lang]) ||
+       normalized.optionTranslations[lang].length!==4 ||
+       normalized.optionTranslations[lang].some(x=>
+         typeof x!=='string' || !x.trim()
+       ))){
+      throw Object.assign(
+        new Error('Question '+(index+1)+': '+lang+' translations incomplete'),
+        {status:400}
+      );
+    }
+  }
+
+  return normalized;
+});
+const session=mongo.startSession();
+
+try{
+  await session.withTransaction(async()=>{
+    const questionsCollection=c('questions');
+
+    const inserted=await questionsCollection.insertMany(qs,{
+      session
+    });
+
+    const insertedIds=Object.values(inserted.insertedIds);
+
+    const saved=await questionsCollection.find(
+      {_id:{$in:insertedIds}},
+      {session}
+    ).toArray();
+
+    if(saved.length!==qs.length){
+      throw new Error('Post-upload verification failed: question count mismatch');
+    }
+
+    const savedById=new Map(saved.map(q=>[q.id,q]));
+
+    for(const expected of qs){
+      const actual=savedById.get(expected.id);
+
+      if(!actual){
+        throw new Error('Post-upload verification failed: missing question');
+      }
+
+      for(const lang of Object.keys(expected.questionTranslations||{})){
+        if(actual.questionTranslations?.[lang]!==expected.questionTranslations[lang]){
+          throw new Error('Post-upload verification failed: '+lang+' question translation mismatch');
+        }
+      }
+
+      for(const lang of Object.keys(expected.optionTranslations||{})){
+        if(JSON.stringify(actual.optionTranslations?.[lang])!==
+           JSON.stringify(expected.optionTranslations[lang])){
+          throw new Error('Post-upload verification failed: '+lang+' options mismatch');
+        }
+      }
+    }
+
+    const updated=await c('exams').updateOne(
+      {id:examId},
+      {$inc:{question_count:qs.length}},
+      {session}
+    );
+
+    if(updated.matchedCount!==1){
+      throw new Error('Post-upload verification failed: exam not found');
+    }
+  });
+
+  return qs.length;
+}finally{
+  await session.endSession();
+}}
 app.post('/api/admin/add-questions',auth,admin,asyncRoute(async(req,res)=>{const count=await insertQuestions(clean(req.body.exam_id),[req.body]);res.json({success:true,count});}));
 app.post('/api/admin/bulk-questions',auth,admin,asyncRoute(async(req,res)=>{let items;try{items=JSON.parse(req.body.bulk_text||'');}catch{return err(res,400,'Bulk questions must be a JSON array');}const count=await insertQuestions(clean(req.body.exam_id),items);res.json({success:true,message:`${count} questions added`,count});}));
 const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:2*1024*1024},fileFilter:(req,file,cb)=>cb(null,file.mimetype==='application/json'||file.originalname.toLowerCase().endsWith('.json'))});
