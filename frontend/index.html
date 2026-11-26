@@ -4218,9 +4218,9 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
 
     function projectCostFor(project) {
         if (project.type === "Major") {
-            return ["Market value varies", "Student fee: Rs. 5,999+"];
+            return ["Market value varies", "Rs. 5,999"];
         }
-        return ["Market value varies", "Student fee: Rs. 2,999+"];
+        return ["Market value varies", "Rs. 2,999"];
     }
 
     function realtimeProjectsFor(tabKey) {
@@ -4249,7 +4249,8 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
         return "<div class=\"title-detail-card\" id=\"" + escapeHtml(detailId) + "\" hidden>" +
             "<p><strong>Brief:</strong> " + escapeHtml(project.title) + " includes planning, UI/logic design, database/file storage, CRUD flow, validation, reports and final demo support.</p>" +
             "<p><strong>Type:</strong> " + escapeHtml(project.type) + " | <strong>Technology:</strong> " + escapeHtml(project.stack) + " | <strong>Database:</strong> " + escapeHtml(project.database) + "</p>" +
-            "<p><strong>Course:</strong> " + escapeHtml(project.course) + " | <strong>Support Fee:</strong> " + escapeHtml(projectCostFor(project)[1]) + "</p>" +
+            "<p><strong>Course:</strong> " + escapeHtml(project.course) + " | <strong>Minimum Fee:</strong> " + escapeHtml(projectCostFor(project)[1]) + "</p>" +
+            "<p>Final fee may be higher depending on project requirements.</p>" +
             "<a class=\"detail-action\" href=\"" + whatsappDetailsLink("project", project.title) + "\" target=\"_blank\" rel=\"noopener\">Ask for Project details</a>" +
         "</div>";
     }
@@ -4331,6 +4332,7 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
             "<div class=\"realtime-project-block\">" +
                 "<div class=\"realtime-project-head\">" +
                     "<h4>Project Details</h4>" +
+                    "<p>Final fee may be higher depending on project requirements.</p>" +
                 "</div>" +
                 "<div class=\"realtime-project-table-wrap\">" +
                     "<table class=\"realtime-project-table\">" +
@@ -4343,7 +4345,7 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
                                 "<th>Technology</th>" +
                                 "<th>Respective Database</th>" +
                                 "<th>Market Value</th>" +
-                                "<th>Student Support Fee</th>" +
+                                "<th>Minimum Fee</th>" +
                             "</tr>" +
                         "</thead>" +
                         "<tbody>" + rowsHtml + "</tbody>" +
