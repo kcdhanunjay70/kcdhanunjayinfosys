@@ -15,6 +15,7 @@ import multer from 'multer';
 import compression from 'compression';
 import nodemailer from 'nodemailer';
 import {buildResultEmail} from './result-notifications.js';
+import {registerPasswordRecovery} from './password-recovery.js';
 
 const {MONGODB_URI,JWT_SECRET,ADMIN_EMAIL,ADMIN_PASSWORD,PORT=3000}=process.env;
 if(!MONGODB_URI || !JWT_SECRET || JWT_SECRET.length<32) throw Error('Set MONGODB_URI and JWT_SECRET (32+ characters)');
@@ -137,6 +138,23 @@ const auth=asyncRoute(async(req,res,next)=>{req.user=await getUser(bearer(req));
 const admin=(req,res,next)=>req.user.role==='admin'?next():err(res,403,'Admin access required');
 const secure=(route,handler)=>app.get(route,auth,admin,asyncRoute(handler));
 const rate=rateLimit({windowMs:15*60*1000,limit:30,standardHeaders:'draft-7',legacyHeaders:false});
+const sendRecoveryEmail = process.env.BREVO_API_KEY && process.env.PASSWORD_RESET_SENDER
+  ? async ({to, subject, text}) => {
+      const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+        method: 'POST',
+        headers: {'api-key':process.env.BREVO_API_KEY,'Content-Type':'application/json'},
+        body: JSON.stringify({
+          sender:{email:process.env.PASSWORD_RESET_SENDER,name:'KCDHANUNJAY INFOSYS'},
+          to:[{email:to}],subject,textContent:text
+        }),
+        signal: AbortSignal.timeout(15000)
+      });
+      if (!response.ok) throw new Error('Password reset email provider rejected the request');
+    }
+  : smtpTransporter
+    ? (message) => smtpTransporter.sendMail({from:process.env.SMTP_USER,...message})
+    : null;
+registerPasswordRecovery(app, {users:c('users'),secret:JWT_SECRET,sendEmail:sendRecoveryEmail});
 const clean=s=>String(s??'').trim();
 const validEmail=s=>/^\S+@\S+\.\S+$/.test(s);
 const validPhone=s=>/^\d{10}$/.test(s);

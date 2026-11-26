@@ -61,6 +61,9 @@
         if (loginParams.get("message") === "login-required") {
             showMessage("Please register or login to start exam.", "error");
         }
+        if (loginParams.get("message") === "password-updated") {
+            showMessage("Password updated. Log in with your new password.");
+        }
 
         document.getElementById("loginForm").addEventListener("submit", async (event) => {
             event.preventDefault();
