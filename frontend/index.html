@@ -1844,6 +1844,36 @@
             margin-top: 10px;
         }
 
+        .mock-exam-instructions p {
+            padding: 12px 18px;
+            border-radius: 12px;
+            background: linear-gradient(110deg, #a5f3fc, #bfdbfe, #e9d5ff, #fbcfe8);
+            background-size: 200% 100%;
+            color: #172033;
+            animation: mock-instruction-glow 8s ease-in-out infinite alternate;
+        }
+
+        .mock-exam-instructions p + p {
+            background-image: linear-gradient(110deg, #fde68a, #fed7aa, #fbcfe8, #ddd6fe);
+        }
+
+        .mock-exam-instructions a {
+            color: #31206f;
+            text-decoration: underline;
+            text-underline-offset: 0.15em;
+        }
+
+        @keyframes mock-instruction-glow {
+            from { background-position: 0% 50%; }
+            to { background-position: 100% 50%; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .mock-exam-instructions p {
+                animation: none;
+            }
+        }
+
         .feature-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
@@ -3486,7 +3516,7 @@
 <div class="project-panel" id="projectPanel" hidden></div>
 </section>
 <h2 class="section-title reveal" data-i18n="codingExamsTitle" id="examMocksHeader">AI-Proctored Online Mock Exams for Practice</h2>
-<div class="feature-heading reveal" aria-labelledby="examMocksHeader">
+<div class="feature-heading mock-exam-instructions reveal" aria-labelledby="examMocksHeader">
 <p><a href="/register.html">Sign up</a> with a valid email address and create a password for this site. Then <a href="/login.html">log in</a>, open <strong>Available Exams</strong>, and choose a mock exam to start practicing.</p>
 <p>After you submit your exam, your result is sent to your registered email address. To share it with the admin, select <strong>Send Result to Admin WhatsApp</strong> on the results screen, then tap <strong>Send</strong> in WhatsApp.</p>
 </div>
