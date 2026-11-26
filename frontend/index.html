@@ -1467,42 +1467,53 @@
         }
 
         .project-tab-row {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
             gap: 12px;
             padding: 16px 2px 12px;
         }
 
-        .project-tab-row::-webkit-scrollbar {
-            height: 8px;
-        }
-
-        .project-tab-row::-webkit-scrollbar-thumb {
-            background: var(--neon-blue);
-            border-radius: 999px;
-        }
-
         .project-tab-btn {
-            flex: 0 0 auto;
-            min-width: 120px;
+            min-width: 0;
             min-height: 44px;
             border: 1px solid rgba(0, 212, 255, 0.4);
             border-radius: 10px;
             padding: 10px 14px;
             color: #06131a;
-            background: linear-gradient(135deg, #7dd3fc, #5eead4);
+            background: var(--project-subject-color, #7dd3fc);
             font-weight: 900;
             text-transform: uppercase;
-            scroll-snap-align: start;
             cursor: pointer;
             transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .project-tab-btn.active,
+        .project-tab-btn:nth-child(1) { --project-subject-color: #7dd3fc; }
+        .project-tab-btn:nth-child(2) { --project-subject-color: #a5b4fc; }
+        .project-tab-btn:nth-child(3) { --project-subject-color: #fdba74; }
+        .project-tab-btn:nth-child(4) { --project-subject-color: #fde047; }
+        .project-tab-btn:nth-child(5) { --project-subject-color: #93c5fd; }
+        .project-tab-btn:nth-child(6) { --project-subject-color: #86efac; }
+        .project-tab-btn:nth-child(7) { --project-subject-color: #67e8f9; }
+        .project-tab-btn:nth-child(8) { --project-subject-color: #fda4af; }
+        .project-tab-btn:nth-child(9) { --project-subject-color: #c4b5fd; }
+        .project-tab-btn:nth-child(10) { --project-subject-color: #f0abfc; }
+        .project-tab-btn:nth-child(11) { --project-subject-color: #5eead4; }
+        .project-tab-btn:nth-child(12) { --project-subject-color: #f9a8d4; }
+        .project-tab-btn:nth-child(13) { --project-subject-color: #bae6fd; }
+        .project-tab-btn:nth-child(14) { --project-subject-color: #fcd34d; }
+        .project-tab-btn:nth-child(15) { --project-subject-color: #bef264; }
+        .project-tab-btn:nth-child(16) { --project-subject-color: #b5d4fa; }
+        .project-tab-btn:nth-child(17) { --project-subject-color: #fca5a5; }
+
         .project-tab-btn:hover {
-            background: linear-gradient(135deg, #fff200, #39ff14);
             transform: translateY(-2px);
-            box-shadow: 0 14px 30px rgba(94, 234, 212, 0.32);
+            box-shadow: 0 6px 16px rgba(255, 255, 255, 0.2);
+        }
+
+        .project-tab-btn.active,
+        .project-tab-btn:focus-visible {
+            outline: 2px solid #fff;
+            outline-offset: 2px;
         }
 
         .project-panel {
@@ -3197,7 +3208,6 @@
         .action-btn,
         .compiler-btn,
         .quick-mock-btn,
-        .project-tab-btn,
         .quick-tab,
         .btn-link,
         #courses h3,
@@ -3215,7 +3225,6 @@
         .action-btn:hover,
         .compiler-btn:hover,
         .quick-mock-btn:hover,
-        .project-tab-btn:hover,
         .quick-tab:hover,
         .btn-link:hover,
         .hero-proof-grid a:hover {
@@ -3466,7 +3475,7 @@
 <div class="project-tab-row" id="projectTabRow"></div>
 <div class="project-panel" id="projectPanel" hidden></div>
 </section>
-<h2 class="section-title reveal" data-i18n="codingExamsTitle" id="examMocksHeader">Coding Projects &amp; Online Exams</h2>
+<h2 class="section-title reveal" data-i18n="codingExamsTitle" id="examMocksHeader">Mock Online Exams for Practice</h2>
 <div aria-label="Quick course and exam categories" class="quick-category-strip reveal" id="quickCategoryStrip"></div>
 <div class="quick-sync-panel reveal" id="quickSyncPanel"></div>
 <section class="feature-panel reveal" aria-labelledby="gateDa2026PaperTitle">
@@ -4591,7 +4600,7 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
             viewProjectCategories: "View Project Categories",
             compilerTitle: "Run Your Programming Codes",
             projectsTitle: "Projects",
-            codingExamsTitle: "Coding Projects & Online Exams",
+            codingExamsTitle: "Mock Online Exams for Practice",
             learnKicker: "What You Will Learn",
             learnTitle: "Skills Students Can Show",
             learnText: "Course content is now presented around outcomes, so visitors quickly understand what they can learn and where it helps.",
@@ -4682,7 +4691,7 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
             viewProjectCategories: "ప్రాజెక్ట్ కేటగిరీలు చూడండి",
             compilerTitle: "మీ ప్రోగ్రామింగ్ కోడ్స్ రన్ చేయండి",
             projectsTitle: "ప్రాజెక్టులు",
-            codingExamsTitle: "కోడింగ్ ప్రాజెక్టులు మరియు ఆన్‌లైన్ పరీక్షలు",
+            codingExamsTitle: "అభ్యాసం కోసం ఆన్‌లైన్ మాక్ పరీక్షలు",
             learnKicker: "మీరు నేర్చుకునేది",
             learnTitle: "విద్యార్థులు చూపించగల స్కిల్స్",
             learnText: "విజిటర్లకు నేర్చుకునే విషయాలు మరియు వాటి ఉపయోగం త్వరగా అర్థమయ్యేలా కోర్సు కంటెంట్ ఉంచాం.",
@@ -4773,7 +4782,7 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
             viewProjectCategories: "Project Categories देखें",
             compilerTitle: "अपने Programming Codes Run करें",
             projectsTitle: "Projects",
-            codingExamsTitle: "Coding Projects और Online Exams",
+            codingExamsTitle: "अभ्यास के लिए ऑनलाइन मॉक परीक्षाएँ",
             learnKicker: "आप क्या सीखेंगे",
             learnTitle: "Students दिखा सकने वाले Skills",
             learnText: "Course content outcomes के अनुसार रखा गया है ताकि visitors जल्दी समझ सकें.",
@@ -4844,7 +4853,7 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
             viewProjectCategories: "Project Categories ನೋಡಿ",
             compilerTitle: "ನಿಮ್ಮ Programming Codes Run ಮಾಡಿ",
             projectsTitle: "Projects",
-            codingExamsTitle: "Coding Projects ಮತ್ತು Online Exams",
+            codingExamsTitle: "ಅಭ್ಯಾಸಕ್ಕಾಗಿ ಆನ್‌ಲೈನ್ ಅಣಕು ಪರೀಕ್ಷೆಗಳು",
             learnKicker: "ನೀವು ಏನು ಕಲಿಯುತ್ತೀರಿ",
             learnTitle: "Students ತೋರಿಸಬಹುದಾದ Skills",
             learnText: "Visitors ಗೆ outcomes ಬೇಗ ಅರ್ಥವಾಗುವಂತೆ course content ಇಡಲಾಗಿದೆ.",
@@ -4897,7 +4906,7 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
             viewProjectCategories: "Project Categories பார்க்க",
             compilerTitle: "உங்கள் Programming Codes Run செய்யுங்கள்",
             projectsTitle: "Projects",
-            codingExamsTitle: "Coding Projects மற்றும் Online Exams",
+            codingExamsTitle: "பயிற்சிக்கான ஆன்லைன் மாதிரித் தேர்வுகள்",
             learnKicker: "நீங்கள் கற்குவது",
             learnTitle: "Students காட்டக்கூடிய Skills",
             learnText: "Visitors க்கு outcomes தெளிவாக புரிய course content அமைக்கப்பட்டுள்ளது.",
