@@ -1468,10 +1468,9 @@
 
         .project-tab-row {
             display: flex;
+            flex-wrap: wrap;
             gap: 12px;
-            overflow-x: auto;
             padding: 16px 2px 12px;
-            scroll-snap-type: x mandatory;
         }
 
         .project-tab-row::-webkit-scrollbar {
@@ -3465,7 +3464,7 @@
 <section aria-label="Programming project lists" class="project-launcher reveal" id="projects">
 <button class="compiler-heading-btn" data-i18n="projectsTitle" type="button">Projects</button>
 <div class="project-tab-row" id="projectTabRow"></div>
-<div class="project-panel" id="projectPanel"></div>
+<div class="project-panel" id="projectPanel" hidden></div>
 </section>
 <h2 class="section-title reveal" data-i18n="codingExamsTitle" id="examMocksHeader">Coding Projects &amp; Online Exams</h2>
 <div aria-label="Quick course and exam categories" class="quick-category-strip reveal" id="quickCategoryStrip"></div>
@@ -4222,16 +4221,36 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
         });
     }
 
-    function renderProgrammingProjects(activeKey = "c") {
+    function renderProgrammingProjects() {
         const tabRow = document.getElementById("projectTabRow");
         const panel = document.getElementById("projectPanel");
         if (!tabRow || !panel) return;
 
-        const active = programmingProjectTabs.find((tab) => tab.key === activeKey) || programmingProjectTabs[0];
         tabRow.innerHTML = programmingProjectTabs
-            .map((tab) => "<button class=\"project-tab-btn " + (tab.key === active.key ? "active" : "") + "\" type=\"button\" data-project-key=\"" + escapeHtml(tab.key) + "\">" + escapeHtml(tab.label) + "</button>")
+            .map((tab) => "<button class=\"project-tab-btn\" type=\"button\" aria-controls=\"projectPanel\" aria-expanded=\"false\" data-project-key=\"" + escapeHtml(tab.key) + "\">" + escapeHtml(tab.label) + "</button>")
             .join("");
 
+        const buttons = tabRow.querySelectorAll("[data-project-key]");
+        buttons.forEach((button) => {
+            button.addEventListener("click", () => {
+                const isOpening = button.getAttribute("aria-expanded") === "false";
+                buttons.forEach((subjectButton) => {
+                    const isActive = isOpening && subjectButton === button;
+                    subjectButton.classList.toggle("active", isActive);
+                    subjectButton.setAttribute("aria-expanded", String(isActive));
+                });
+                panel.hidden = !isOpening;
+                if (isOpening) {
+                    const active = programmingProjectTabs.find((tab) => tab.key === button.dataset.projectKey);
+                    renderProjectPanel(panel, active);
+                } else {
+                    panel.replaceChildren();
+                }
+            });
+        });
+    }
+
+    function renderProjectPanel(panel, active) {
         const levelsHtml = active.levels.map((level) => (
             "<div class=\"project-level\">" +
                 "<strong>" + escapeHtml(level.title) + "</strong>" +
@@ -4285,9 +4304,6 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
             "</div>" +
             "<p class=\"project-join-note\">Projects cheyyalante KCDHANUNJAY INFOSYS lo join avvandi.</p>";
 
-        tabRow.querySelectorAll("[data-project-key]").forEach((button) => {
-            button.addEventListener("click", () => renderProgrammingProjects(button.dataset.projectKey));
-        });
         attachDetailToggles(panel);
     }
 
