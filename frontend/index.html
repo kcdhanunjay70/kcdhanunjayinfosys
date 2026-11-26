@@ -272,54 +272,41 @@
         }
 
         .hero-course-flyer {
-            display: flex;
-            flex-direction: column;
-            min-height: 100%;
+            display: block;
+            align-self: start;
             border: 1px solid rgba(94, 234, 212, 0.38);
             border-radius: 8px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.96);
+            background: #08172c;
             box-shadow: 0 20px 54px rgba(0,0,0,0.45), 0 0 28px rgba(34, 211, 238, 0.18);
             text-decoration: none;
         }
 
-        .hero-course-flyer img {
+        .hero-flyer-art {
+            /* Frame the course artwork above the printed promotional and address footer. */
+            aspect-ratio: 1024 / 1260;
+            overflow: hidden;
+        }
+
+        .hero-flyer-art img {
             display: block;
             width: 100%;
             height: auto;
-            min-height: 0;
-            flex: 1 1 auto;
-            object-fit: contain;
-            object-position: top center;
         }
 
         .hero-flyer-message {
-            flex: 0 0 auto;
-            padding: 16px 12px 18px;
-            color: #07111f;
-            background: #ffffff;
+            padding: 12px;
+            border-top: 1px solid rgba(94,234,212,0.3);
+            color: #e2f6ff;
+            background: linear-gradient(125deg, #102c50, #113b42);
             text-align: center;
-            box-shadow: inset 0 1px 0 rgba(15, 23, 42, 0.1);
+            font-size: 0.9rem;
+            font-weight: 800;
         }
 
-        .hero-flyer-message strong,
-        .hero-flyer-message span {
-            display: block;
-            line-height: 1.18;
-        }
-
-        .hero-flyer-message strong {
-            color: #dc2626;
-            font-size: clamp(1.02rem, 1.6vw, 1.24rem);
-            font-weight: 1000;
-            text-transform: uppercase;
-        }
-
-        .hero-flyer-message span {
-            margin-top: 6px;
-            color: #0f172a;
-            font-size: clamp(0.9rem, 1.25vw, 1.02rem);
-            font-weight: 900;
+        .hero-course-flyer:hover .hero-flyer-message,
+        .hero-course-flyer:focus-visible .hero-flyer-message {
+            background: #18516a;
         }
 
         .hero-fee-strip {
@@ -2007,7 +1994,8 @@
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
             .hero-course-flyer {
-                max-height: 520px;
+                width: min(100%, 380px);
+                justify-self: center;
             }
             .contact-strip .hero-cta {
                 width: 100%;
@@ -3360,8 +3348,7 @@
             .site-nav a { min-width: 0; text-align: center; overflow-wrap: anywhere; }
             .glow-header { font-size: clamp(1.65rem, 7vw, 2.8rem); overflow-wrap: anywhere; }
             .hero-media-showcase { width: 100%; min-width: 0; }
-            .hero-course-flyer { width: 100%; min-width: 0; }
-            .hero-course-flyer img { max-width: 100%; height: auto; }
+            .hero-course-flyer { min-width: 0; }
         }
 </style>
 </head>
@@ -3392,11 +3379,8 @@
 <p class="institute-tagline reveal" data-i18n="tagline">Computer Institute / Software Training Center / Exploring All Technologies</p>
 <div class="hero-media-showcase reveal">
 <a aria-label="Programming languages course flyer" class="hero-course-flyer" href="https://wa.me/919494705353?text=Hi%20sir%2C%20I%20want%20programming%20languages%20course%20details" rel="noopener" target="_blank">
-<img alt="C C++ Java JavaScript Python programming course flyer for KCDHANUNJAY INFOSYS" src="/assets/programming-languages-course-flyer.png"/>
-<div class="hero-flyer-message">
-<strong>Send Hi on WhatsApp to 9494705353</strong>
-<span>You will get our computer institute details instantly.</span>
-</div>
+<div class="hero-flyer-art"><img alt="C C++ Java JavaScript Python programming course flyer for KCDHANUNJAY INFOSYS" src="/assets/programming-languages-course-flyer.png" width="1024" height="1536"/></div>
+<div class="hero-flyer-message">Ask about Programming on WhatsApp</div>
 </a>
 <div class="hero-media-panel" aria-label="KCDHANUNJAY INFOSYS Institute Information"
      style="padding:24px 18px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:13px;line-height:1.6;">
@@ -3441,11 +3425,8 @@
 
 </div>
 <a aria-label="AI Coding course flyer" class="hero-course-flyer" href="https://wa.me/919494705353?text=Hi%20sir%2C%20I%20want%20AI%20Coding%20course%20details" rel="noopener" target="_blank">
-<img alt="AI Coding course flyer for KCDHANUNJAY INFOSYS" src="/assets/ai-coding-course-flyer.png"/>
-<div class="hero-flyer-message">
-<strong>Send Hi on WhatsApp to 9494705353</strong>
-<span>You will get our computer institute details instantly.</span>
-</div>
+<div class="hero-flyer-art"><img alt="AI Coding course flyer for KCDHANUNJAY INFOSYS" src="/assets/ai-coding-course-flyer.png" width="1024" height="1536"/></div>
+<div class="hero-flyer-message">Ask about AI Coding on WhatsApp</div>
 </a>
 </div>
 <div aria-label="Monthly course fees" class="hero-fee-strip reveal">
