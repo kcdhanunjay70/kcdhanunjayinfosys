@@ -261,19 +261,20 @@
             margin: 28px auto 6px;
             display: grid;
             grid-template-columns: minmax(220px, 0.82fr) minmax(360px, 1.28fr) minmax(220px, 0.82fr);
-            gap: 18px;
+            grid-template-rows: auto 1fr;
+            gap: 10px 18px;
             align-items: stretch;
         }
 		
         .hero-media-showcase .hero-media-panel {
+            grid-row: span 2;
             width: 100%;
-            margin: 0;
-            height: 100%;
+            margin: 0 !important;
         }
 
         .hero-course-flyer {
-            display: block;
-            align-self: start;
+            display: grid;
+            grid-template-rows: auto 1fr;
             border: 1px solid rgba(94, 234, 212, 0.38);
             border-radius: 8px;
             overflow: hidden;
@@ -315,13 +316,33 @@
         .hero-flyer-column {
             min-width: 0;
             display: grid;
-            align-content: start;
-            gap: 10px;
+            grid-row: span 2;
+            grid-template-rows: subgrid;
         }
 
         .hero-fee-strip {
             display: grid;
+            grid-auto-rows: 1fr;
             gap: 8px;
+        }
+
+        @media (max-width: 920px) {
+            .hero-media-showcase {
+                grid-template-columns: minmax(0, 1fr);
+                grid-template-rows: auto;
+            }
+
+            .hero-media-showcase .hero-media-panel,
+            .hero-flyer-column {
+                grid-row: auto;
+            }
+
+            .hero-flyer-column {
+                width: min(100%, 380px);
+                justify-self: center;
+                grid-template-rows: auto auto;
+                gap: 10px;
+            }
         }
 
         .hero-fee-card {
@@ -1995,13 +2016,6 @@
             .usp-layout,
             .contact-strip {
                 grid-template-columns: 1fr;
-            }
-            .hero-media-showcase {
-                grid-template-columns: 1fr;
-            }
-            .hero-flyer-column {
-                width: min(100%, 380px);
-                justify-self: center;
             }
             .contact-strip .hero-cta {
                 width: 100%;
