@@ -295,6 +295,9 @@
         }
 
         .hero-flyer-message {
+            display: grid;
+            place-items: center;
+            min-height: 3.5rem;
             padding: 12px;
             border-top: 1px solid rgba(94,234,212,0.3);
             color: #e2f6ff;
@@ -309,45 +312,53 @@
             background: #18516a;
         }
 
-        .hero-fee-strip {
-            width: min(1220px, 100%);
-            margin: 16px auto 4px;
+        .hero-flyer-column {
+            min-width: 0;
             display: grid;
-            grid-template-columns: repeat(6, minmax(132px, 1fr));
+            align-content: start;
             gap: 10px;
         }
 
-        .hero-fee-card {
-            min-height: 92px;
+        .hero-fee-strip {
             display: grid;
-            place-items: center;
-            align-content: center;
+            gap: 8px;
+        }
+
+        .hero-fee-card {
+            min-height: 70px;
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            grid-template-areas: "course price" "course period";
+            align-items: center;
             border: 1px solid rgba(255,255,255,0.34);
             border-radius: 8px;
-            padding: 10px 8px;
+            padding: 8px 12px;
             color: #fff;
-            text-align: center;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1), 0 12px 28px rgba(0,0,0,0.25);
         }
 
         .hero-fee-card strong {
-            display: block;
-            font-size: clamp(0.95rem, 1.65vw, 1.15rem);
-            line-height: 1.08;
+            grid-area: course;
+            padding-right: 8px;
+            font-size: 0.95rem;
+            line-height: 1.2;
             text-shadow: 0 1px 8px rgba(0,0,0,0.45);
         }
 
         .hero-fee-card span {
-            display: block;
-            margin-top: 6px;
-            font-size: clamp(1.22rem, 2vw, 1.55rem);
+            grid-area: price;
+            align-self: end;
+            text-align: right;
+            font-size: 1.1rem;
             font-weight: 900;
             line-height: 1;
             text-shadow: 0 2px 10px rgba(0,0,0,0.48);
         }
 
         .hero-fee-card small {
-            display: block;
+            grid-area: period;
+            align-self: start;
+            text-align: right;
             margin-top: 4px;
             color: #f8fafc;
             font-size: 0.68rem;
@@ -360,11 +371,9 @@
         .hero-fee-card:nth-child(1) { background: linear-gradient(135deg, #18b8bd, #0ea5d3); }
         .hero-fee-card:nth-child(2) { background: linear-gradient(135deg, #5365df, #2f7de0); }
         .hero-fee-card:nth-child(3) { background: linear-gradient(135deg, #22c55e, #119aa5); }
-        .hero-fee-card:nth-child(4) { background: linear-gradient(135deg, #d97730, #b59a35); }
-        .hero-fee-card:nth-child(5) { background: linear-gradient(135deg, #8757df, #b851b4); }
-        .hero-fee-card:nth-child(6) { background: linear-gradient(135deg, #51749d, #067099); }
-        .hero-fee-card:nth-child(7) { background: linear-gradient(135deg, #bd3f52, #c96a45); }
-        }
+        .hero-fee-strip-secondary .hero-fee-card:nth-child(1) { background: linear-gradient(135deg, #d97730, #b59a35); }
+        .hero-fee-strip-secondary .hero-fee-card:nth-child(2) { background: linear-gradient(135deg, #8757df, #b851b4); }
+        .hero-fee-strip-secondary .hero-fee-card:nth-child(3) { background: linear-gradient(135deg, #51749d, #067099); }
 
         .sarva-fee-section {
             width: min(1220px, 100%);
@@ -1990,10 +1999,7 @@
             .hero-media-showcase {
                 grid-template-columns: 1fr;
             }
-            .hero-fee-strip {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-            .hero-course-flyer {
+            .hero-flyer-column {
                 width: min(100%, 380px);
                 justify-self: center;
             }
@@ -3378,10 +3384,17 @@
 <h1 class="glow-header reveal">KCDHANUNJAY INFOSYS</h1>
 <p class="institute-tagline reveal" data-i18n="tagline">Computer Institute / Software Training Center / Exploring All Technologies</p>
 <div class="hero-media-showcase reveal">
+<div class="hero-flyer-column">
 <a aria-label="Programming languages course flyer" class="hero-course-flyer" href="https://wa.me/919494705353?text=Hi%20sir%2C%20I%20want%20programming%20languages%20course%20details" rel="noopener" target="_blank">
 <div class="hero-flyer-art"><img alt="C C++ Java JavaScript Python programming course flyer for KCDHANUNJAY INFOSYS" src="/assets/programming-languages-course-flyer.png" width="1024" height="1536"/></div>
 <div class="hero-flyer-message">Ask about Programming on WhatsApp</div>
 </a>
+<div role="group" aria-label="Monthly course fees for C, C++ and Java" class="hero-fee-strip">
+<div class="hero-fee-card"><strong>C Language Basics</strong><span>Rs 1000</span><small>Per Month</small></div>
+<div class="hero-fee-card"><strong>C++ Language Basics</strong><span>Rs 1500</span><small>Per Month</small></div>
+<div class="hero-fee-card"><strong>Java Language Basics</strong><span>Rs 2000</span><small>Per Month</small></div>
+</div>
+</div>
 <div class="hero-media-panel" aria-label="KCDHANUNJAY INFOSYS Institute Information"
      style="padding:24px 18px;text-align:center;display:flex;flex-direction:column;justify-content:center;gap:13px;line-height:1.6;">
 
@@ -3424,18 +3437,17 @@
   </a>
 
 </div>
+<div class="hero-flyer-column">
 <a aria-label="AI Coding course flyer" class="hero-course-flyer" href="https://wa.me/919494705353?text=Hi%20sir%2C%20I%20want%20AI%20Coding%20course%20details" rel="noopener" target="_blank">
 <div class="hero-flyer-art"><img alt="AI Coding course flyer for KCDHANUNJAY INFOSYS" src="/assets/ai-coding-course-flyer.png" width="1024" height="1536"/></div>
 <div class="hero-flyer-message">Ask about AI Coding on WhatsApp</div>
 </a>
-</div>
-<div aria-label="Monthly course fees" class="hero-fee-strip reveal">
-<div class="hero-fee-card"><strong>C Language Basics</strong><span>Rs 1000</span><small>Per Month</small></div>
-<div class="hero-fee-card"><strong>C++ Language Basics</strong><span>Rs 1500</span><small>Per Month</small></div>
-<div class="hero-fee-card"><strong>Java Language Basics</strong><span>Rs 2000</span><small>Per Month</small></div>
+<div role="group" aria-label="Monthly course fees for JavaScript, Python and Oracle SQL" class="hero-fee-strip hero-fee-strip-secondary">
 <div class="hero-fee-card"><strong>JavaScript Basics</strong><span>Rs 2000</span><small>Per Month</small></div>
 <div class="hero-fee-card"><strong>Python Programming Basics</strong><span>Rs 2000</span><small>Per Month</small></div>
 <div class="hero-fee-card"><strong>Oracle SQL</strong><span>Rs 1500</span><small>Per Month</small></div>
+</div>
+</div>
 </div>
 </header>
 <div class="grid">
