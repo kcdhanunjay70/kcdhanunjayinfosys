@@ -665,6 +665,15 @@
             box-shadow: 0 10px 24px rgba(14, 165, 233, 0.22);
         }
 
+        .quick-sync-panel a.quick-mock-btn {
+            display: block;
+            text-decoration: none;
+        }
+
+        .quick-shift-year a.quick-mock-btn + a.quick-mock-btn {
+            margin-top: 8px;
+        }
+
         .quick-mock-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 14px 30px rgba(94, 234, 212, 0.32);
@@ -3480,8 +3489,8 @@
 <p><a href="/register.html">Sign up</a> with a valid email address and create a password for this site. Then <a href="/login.html">log in</a>, open <strong>Available Exams</strong>, and choose a mock exam to start practicing.</p>
 <p>After you submit your exam, your result is sent to your registered email address. To share it with the admin, select <strong>Send Result to Admin WhatsApp</strong> on the results screen, then tap <strong>Send</strong> in WhatsApp.</p>
 </div>
-<div aria-label="Quick course and exam categories" class="quick-category-strip reveal" id="quickCategoryStrip"></div>
-<div class="quick-sync-panel reveal" id="quickSyncPanel"></div>
+<div aria-label="Mock exam categories" class="quick-category-strip reveal" id="quickCategoryStrip"></div>
+<div class="quick-sync-panel reveal" id="quickSyncPanel" hidden></div>
 <section class="feature-panel reveal" aria-labelledby="gateDa2026PaperTitle">
 <div class="feature-heading">
 <h2 class="section-title" id="gateDa2026PaperTitle">GATE 2026 DA Question Paper</h2>
@@ -4321,98 +4330,14 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
     }
 
     const quickContent = [
-        {
-            key: "polycet",
-            label: "AP POLYCET",
-            examType: "ap-polycet",
-            title: "AP POLYCET Mock Tests",
-            text: "AP POLYCET mocks are arranged year wise with a ready 120-question practice database covering Mathematics, Physics, and Chemistry.",
-            items: ["Mock 1-3: 2016", "Mock 4-6: 2017", "Mock 7-9: 2018", "Mock 10-12: 2019", "Mock 13-14: 2021", "Mock 15: 2022", "Mock 16-19: 2023", "Mock 20-23: 2024", "Mock 24: 2025", "Mock 25: 2026", "120 Minutes"],
-            shiftGroups: apPolycetShiftGroups,
-            sampleMocks: [{ label: "AP POLYCET 2026 Question Paper Sample", type: "ap-polycet", mock: 25 }],
-            links: []
-        },
-        {
-            key: "eapcet",
-            label: "AP EAPCET",
-            examType: "ap-eapcet",
-            title: "AP EAPCET Mock Tests",
-            text: "AP EAPCET mock exams are arranged year wise from 2017 to 2025 with a ready 160-question MPC practice database for every selected mock.",
-            items: ["Mock 1-6: 2017", "Mock 7-12: 2018", "Mock 13-19: 2019", "Mock 20-27: 2020", "Mock 28-38: 2021", "Mock 39-48: 2022", "Mock 49-58: 2023", "Mock 59-67: 2024", "Mock 68-77: 2025", "160 Questions", "180 Minutes"],
-            shiftGroups: apEapcetShiftGroups,
-            sampleMocks: [
-                { label: "2025 May 21 Shift 1 Sample", type: "ap-eapcet", sampleYear: 2025 }
-            ],
-            links: []
-        },
-        {
-            key: "icet",
-            label: "AP ICET",
-            examType: "ap-icet",
-            title: "AP ICET Mock Tests",
-            text: "AP ICET mock exams are arranged year wise from 2016 to 2026 with a ready 200-question practice database for Analytical, Mathematical, and Communication Ability.",
-            items: ["Mock 1: 2016", "Mock 2-3: 2017", "Mock 4-5: 2018", "Mock 6-7: 2019", "Mock 8-11: 2020", "Mock 12-15: 2021", "Mock 16-17: 2022", "Mock 18-19: 2023", "Mock 20: 2024", "Mock 21-22: 2025", "Mock 23-24: 2026", "200 Questions", "150 Minutes"],
-            shiftGroups: apIcetShiftGroups,
-            sampleMocks: [{ label: "AP ICET 2023 May 24 Shift 1 Sample", type: "ap-icet", mock: 18, sampleYear: 2023 }],
-            links: []
-        },
-        {
-            key: "neetjee",
-            label: "NEET/JEE",
-            title: "NEET/JEE Foundation",
-            text: "Foundation practice support for Maths, Physics, Chemistry, and Biology concepts with problem-solving sessions.",
-            items: ["Physics", "Chemistry", "Maths", "Biology", "Concept Practice"],
-            sampleMocks: [
-                { label: "Physics Sample Mock", type: "ap-eapcet", mock: 1 },
-                { label: "Chemistry Sample Mock", type: "ap-eapcet", mock: 11 },
-                { label: "Maths Sample Mock", type: "ap-eapcet", mock: 20 }
-            ],
-            links: [
-                { label: "Ask NEET/JEE Details", url: "https://wa.me/919494705353" },
-                { label: "Join Foundation Batch", url: "https://docs.google.com/forms/d/e/1FAIpQLSe2gg40O6xeOVYor0wVSZK4tOOvgJqZHUkET60tkEZLRYjhrA/viewform" }
-            ]
-        },
-        {
-            key: "gate",
-            label: "GATE Exams",
-            title: "GATE Exam Practice",
-            text: "GATE CSE and Data Science practice with aptitude, programming, data structures, DBMS, OS, and core concepts.",
-            items: ["GATE CSE", "GATE DS", "Aptitude", "Programming", "Core Subjects"],
-            sampleMocks: [
-                { label: "GATE CSE Sample Mock", type: "gate-cse" },
-                { label: "GATE DS Sample Mock", type: "gate-ds" }
-            ],
-            links: [{ label: "Choose GATE Exam", url: "/dashboard.html" }]
-        },
-        {
-            key: "govt",
-            label: "Govt Exams",
-            title: "Government Exam Mock Tests",
-            text: "Practice AP DSC, AP TET, RRB, AP Police Jobs, reasoning, general knowledge, teaching aptitude, current awareness, and police exam papers.",
-            items: ["AP DSC", "AP TET", "RRB", "AP Police Jobs", "P-1 Set A", "200 Questions", "180 Minutes", "Reasoning", "GK", "Teaching Aptitude"],
-            sampleMocks: [
-                { label: "AP DSC Sample Mock", type: "ap-dsc" },
-                { label: "AP TET Sample Mock", type: "ap-tet" },
-                { label: "RRB Sample Mock", type: "rrb" },
-                { label: "AP Police P-1 Set A Mock", type: "ap-police-jobs", mock: 1 }
-            ],
-            links: [{ label: "Choose Govt Exam", url: "/dashboard.html" }]
-        },
-        {
-            key: "bank",
-            label: "Bank Exams",
-            title: "Bank Exam Mock Tests",
-            text: "Bank clerk, PO, and IT officer practice with quantitative aptitude, reasoning, banking awareness, and computer knowledge.",
-            items: ["Bank Clerk", "Bank PO", "IT Officer", "Quant", "Reasoning", "Banking Awareness"],
-            sampleMocks: [
-                { label: "Bank Clerk Sample Mock", type: "bank-clerk" },
-                { label: "Bank PO Sample Mock", type: "bank-po" },
-                { label: "Bank IT Officer Sample Mock", type: "bank-it-officer" }
-            ],
-            links: [{ label: "Choose Bank Exam", url: "/dashboard.html" }]
-        }
+        { label: "AP POLYCET", shiftGroups: apPolycetShiftGroups },
+        { label: "AP EAPCET", shiftGroups: apEapcetShiftGroups },
+        { label: "AP ICET", shiftGroups: apIcetShiftGroups },
+        { label: "NEET/JEE", subsections: ["Physics", "Chemistry", "Maths", "Biology"] },
+        { label: "GATE Exams", subsections: ["GATE CSE", "GATE DA"] },
+        { label: "Govt Exams", subsections: ["AP DSC", "AP TET", "RRB", "AP Police Jobs"] },
+        { label: "Bank Exams", subsections: ["Bank Clerk", "Bank PO", "Bank IT Officer"] }
     ];
-    const visibleQuickContent = quickContent;
 
     function escapeHtml(value) {
         return String(value ?? "")
@@ -4448,18 +4373,6 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
         return `${url.pathname}${url.search}`;
     }
 
-    function renderMockAction(url, label, extraClass = "", labelHtml = "") {
-        const safeUrl = escapeHtml(url);
-        const safeLabel = escapeHtml(label);
-        const buttonContent = labelHtml || safeLabel;
-        const startButtonClass = extraClass === "quick-mock-card" ? ` class="quick-mock-btn"` : "";
-        return `
-            <span class="${extraClass || "mock-action-row"}">
-                <button${startButtonClass} type="button" data-sample-url="${safeUrl}" data-exam-label="${safeLabel}">${buttonContent}</button>
-            </span>
-        `;
-    }
-
     function openExamLeadModal(sampleUrl, examLabel = "Selected exam") {
         const modal = document.getElementById("examLeadModal");
         const selectedExam = document.getElementById("examLeadSelectedExam");
@@ -4477,88 +4390,44 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
         }
     }
 
-    function tDynamic(key) {
-        const fallbacks = {
-            askDoubts: "Ask Doubts",
-            openRelatedLink: "Open Related Link",
-            startMockExam: "Start Mock Exam",
-        };
-        const languageCode = localStorage.getItem("siteLanguage") || document.documentElement.lang || "en";
-        return siteTranslations[languageCode]?.[key] || siteTranslations.en?.[key] || fallbacks[key] || key;
-    }
-
-    function renderQuickContent(activeKey = "polycet") {
+    function renderQuickContent() {
         const strip = document.getElementById("quickCategoryStrip");
         const panel = document.getElementById("quickSyncPanel");
         if (!strip || !panel) return;
 
-        const active = visibleQuickContent.find((item) => item.key === activeKey) || visibleQuickContent[0];
-        const activeExamType = active.examType || active.sampleMocks?.[0]?.type || active.key;
-        const defaultDoubtsLink = {
-            label: tDynamic("askDoubts"),
-            url: `https://wa.me/919494705353?text=${encodeURIComponent(`Hi sir, I need doubts support for ${active.title} practice.`)}`
-        };
-        const quickLinks = [
-            defaultDoubtsLink,
-            ...(active.links || []).filter((link) => link.label !== defaultDoubtsLink.label)
-        ];
+        const signupLink = (label) =>
+            `<a class="quick-mock-btn" href="/register.html">${escapeHtml(label)}</a>`;
 
-        strip.innerHTML = visibleQuickContent
-            .map((item) => `<button class="quick-tab ${item.key === active.key ? "active" : ""}" type="button" data-quick-key="${item.key}">${item.label}</button>`)
+        strip.innerHTML = quickContent
+            .map(({ label }) => `<button class="quick-tab" type="button" aria-expanded="false" aria-controls="quickSyncPanel">${escapeHtml(label)}</button>`)
             .join("");
 
-        panel.innerHTML = `
-            <h3>${active.title}</h3>
-            <p>${active.text}</p>
-            <div class="quick-sync-list">
-                ${active.items.map((item) => `<span>${item}</span>`).join("")}
-            </div>
-            <div class="quick-mock-grid">
-                ${quickLinks.map((link) =>
-                    `<button class="quick-mock-btn quick-link-btn" type="button" data-link-url="${link.url}">${link.label}<small>${tDynamic("openRelatedLink")}</small></button>`
-                ).join("")}
-            </div>
-            ${active.shiftGroups ? `
-                <div class="quick-shift-list">
-                    ${active.shiftGroups.map((group) => `
-                        <div class="quick-shift-year">
-                            <strong>${group.title}</strong>
-                            ${group.papers.map((paper) => `
-                                ${renderMockAction(
-                                    buildExamStartUrl({ type: activeExamType, mock: paper.mock }),
-                                    `Mock ${paper.mock} - ${paper.label}`
-                                )}
-                            `).join("")}
-                        </div>
-                    `).join("")}
-                </div>
-            ` : ""}
-            <div class="quick-mock-grid">
-                ${(active.sampleMocks || []).map((mock) => {
-                    const url = buildExamStartUrl({ type: mock.type, mock: mock.mock, sampleYear: mock.sampleYear });
-                    return renderMockAction(
-                        url,
-                        mock.label,
-                        "quick-mock-card",
-                        `${escapeHtml(mock.label)}<small>${escapeHtml(tDynamic("startMockExam"))}</small>`
-                    );
-                }).join("")}
-            </div>
-        `;
+        const buttons = strip.querySelectorAll("button");
+        buttons.forEach((button, index) => {
+            button.addEventListener("click", () => {
+                const opening = button.getAttribute("aria-expanded") === "false";
+                buttons.forEach((category) => {
+                    const active = opening && category === button;
+                    category.classList.toggle("active", active);
+                    category.setAttribute("aria-expanded", String(active));
+                });
 
-        strip.querySelectorAll("[data-quick-key]").forEach((button) => {
-            button.addEventListener("click", () => renderQuickContent(button.dataset.quickKey));
-        });
-        panel.querySelectorAll("[data-sample-url]").forEach((button) => {
-            button.addEventListener("click", () => {
-                openExamLeadModal(button.dataset.sampleUrl, button.dataset.examLabel || button.textContent.trim());
-            });
-        });
-        panel.querySelectorAll("[data-link-url]").forEach((button) => {
-            button.addEventListener("click", () => {
-                const url = button.dataset.linkUrl;
-                if (url.startsWith("/")) window.location.href = url;
-                else window.open(url, "_blank", "noopener,noreferrer");
+                panel.hidden = !opening;
+                if (!opening) {
+                    panel.replaceChildren();
+                    return;
+                }
+
+                const { label, shiftGroups, subsections } = quickContent[index];
+                const links = shiftGroups
+                    ? `<div class="quick-shift-list">${shiftGroups.map((group) => `
+                        <div class="quick-shift-year">
+                            <strong>${escapeHtml(group.title)}</strong>
+                            ${group.papers.map((paper) => signupLink(`Mock ${paper.mock} - ${paper.label}`)).join("")}
+                        </div>
+                    `).join("")}</div>`
+                    : `<div class="quick-mock-grid">${subsections.map(signupLink).join("")}</div>`;
+                panel.innerHTML = `<h3>${escapeHtml(label)}</h3>${links}`;
             });
         });
     }
@@ -5823,10 +5692,6 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
             button.classList.toggle("active", button.dataset.lang === languageCode);
         });
         localStorage.setItem("siteLanguage", languageCode);
-        if (document.getElementById("quickSyncPanel")) {
-            const activeQuickButton = document.querySelector(".quick-tab.active");
-            renderQuickContent(activeQuickButton?.dataset.quickKey || "polycet");
-        }
     }
 
     function bindLanguageSelector() {
