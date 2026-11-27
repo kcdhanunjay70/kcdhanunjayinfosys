@@ -11,6 +11,13 @@
 .analytics-chart{width:100%;min-height:220px;overflow-x:auto;border:1px solid #ffffff45;border-radius:14px;background:#003e5470;padding:12px}.analytics-chart svg{display:block;width:100%;height:auto;min-height:190px}.analytics-note{color:#e5fbff;font-size:14px;line-height:1.5}
 .profile-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:18px;margin:20px 0}.profile-grid label{display:flex;flex-direction:column;gap:8px;font-size:14px;font-weight:650;color:#fff}.profile-grid input{width:100%;padding:12px 14px;border:1px solid #ffffff80;border-radius:10px;background:#fff;color:#123b45;font:inherit;font-size:15px}.profile-grid input:focus{outline:3px solid #ffe38c;outline-offset:2px}.profile-grid input[readonly]{background:#dcecf0;color:#425d65;cursor:not-allowed}#profileSave{margin-top:8px}#profileSave:disabled{opacity:.6;cursor:wait}#profileStatus{min-height:22px;margin-top:14px}
 </style>
+<style>
+.exam-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:10px}
+.exam-categories button{padding:11px 10px;border:1px solid #ffffff90;border-radius:10px;background:#07556b;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+.exam-categories button:hover,.exam-categories button[aria-expanded="true"]{background:#fff;color:#07556b}
+.exam-category-panel{margin-top:18px}
+.exam-category-panel h3{margin:0 0 12px}
+</style>
 </head>
 <body>
 <div class="portal" id="portal" hidden>
@@ -29,7 +36,16 @@
 </div></section>
 <section class="section" id="my-profile" aria-labelledby="profileTitle"><h2 id="profileTitle">My Student Profile</h2><p class="muted">View and update your personal information.</p><form id="profileForm"><div class="profile-grid"><label>Full Name<input id="profileName" name="name" type="text" minlength="2" maxlength="100" autocomplete="name" required></label><label>Email Address<input id="profileEmail" name="email" type="email" maxlength="254" autocomplete="email" required></label><label>Mobile Number<input id="profilePhone" name="phone" type="tel" inputmode="numeric" pattern="[0-9]{10}" maxlength="10" autocomplete="tel" required></label><label>Current Password<input id="profileCurrentPassword" name="currentPassword" type="password" autocomplete="current-password" minlength="8" required></label><label>Student ID<input id="profileStudentId" type="text" readonly></label><label>Username<input id="profileUsername" type="text" readonly></label></div><button class="logout" id="profileSave" type="submit">Save Changes</button><p id="profileStatus" class="muted" role="status" aria-live="polite"></p></form></section>
 <section class="section" id="change-password" aria-labelledby="changePasswordTitle"> <h2 id="changePasswordTitle">Change Password</h2> <p class="muted">Secure your student account by updating your password.</p> <form id="changePasswordForm"> <div class="profile-grid"> <label>Current Password<input id="changeCurrentPassword" type="password" autocomplete="current-password" required></label> <label>New Password<input id="changeNewPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label> <label>Confirm New Password<input id="changeConfirmPassword" type="password" autocomplete="new-password" minlength="8" maxlength="128" required></label> </div> <button class="logout" id="changePasswordSave" type="submit">Change Password</button> <p id="changePasswordStatus" class="muted" role="status" aria-live="polite"></p> </form> </section>
-<section class="section" id="available-exams"><h2>🎓 Available Exams — FREE / PAID</h2><p class="muted">Exam access is set by the administrator. All exams require student login.</p><div class="grid" id="availableExamList"><p>Loading exams…</p></div></section>
+<section class="section" id="available-exams">
+ <h2>AI-Proctored Online Mock Exams for Practice</h2>
+ <p class="muted">Choose a category to see its free and paid exams.</p>
+ <p id="examCatalogStatus" role="status">Loading exams…</p>
+ <div class="exam-categories" id="examCategories" role="group" aria-label="Exam categories"></div>
+ <div class="exam-category-panel hidden" id="examCategoryPanel" role="region" aria-labelledby="examCategoryTitle">
+  <h3 id="examCategoryTitle"></h3>
+  <div class="grid" id="availableExamList"></div>
+ </div>
+</section>
 <section class="section" id="exam-analytics" aria-labelledby="analyticsTitle"><h2 id="analyticsTitle">Exam Performance Analytics</h2><p class="muted">Score progress across your latest 100 exam attempts, oldest to newest.</p><div class="analytics-chart" id="examAnalyticsChart" role="img" aria-label="Exam score progress chart"><p class="analytics-note">Loading exam performance...</p></div><p class="analytics-note" id="analyticsStatus" role="status">Waiting for results...</p></section>
 <section class="section" id="my-results"><h2>My Results & Rankings</h2><p class="muted">Your latest 100 exam submissions, loaded securely from the database.</p><button class="logout" type="button" id="refreshResults">Refresh Results</button><p id="resultsStatus" role="status">Loading your results…</p><div class="results-wrap"><table class="results-table"><thead><tr><th>Exam</th><th>Marks</th><th>Percentage</th><th>Rank</th><th>Completed</th></tr></thead><tbody id="myResultsRows"></tbody></table></div></section>
 </main></div>
@@ -239,14 +255,28 @@ async function loadMyResults(){
   status.textContent=results.length?`${results.length} result(s) loaded`:'No exam results found for this account yet.';
  }catch(error){status.textContent=error.message;}
 }
-async function loadAvailableExams(){
+const examCategories=[
+ ['AP POLYCET',/\b(?:polycet|poly-cet)\b/],
+ ['AP EAPCET',/\b(?:eapcet|eamcet|eap-cet)\b/],
+ ['AP ICET',/\b(?:icet|i-cet)\b/],
+ ['NEET/JEE',/\b(?:neet|jee)\b/],
+ ['GATE Exams',/\bgate\b/],
+ ['Govt Exams',/\b(?:dsc|tet|aptet|rrb|railway|police|appsc|tspsc|upsc|ssc|govt|government|school-assistants?|sgt)\b/],
+ ['Bank Exams',/\b(?:banks?|banking|ibps|sbi|rbi|nabard)\b/]
+];
+function examCategoryFor(exam){
+ for(const field of [exam.type,exam.subject,exam.title]){
+  const key=String(field||'').toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  const category=examCategories.find(([,pattern])=>pattern.test(key));
+  if(category)return category[0];
+ }
+ return 'Other Exams';
+}
+function showExamCategory(label,exams){
  const list=document.getElementById('availableExamList');
- try{
-  const response=await fetch('/api/exams/catalog',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
-  const data=await response.json();if(!response.ok)throw new Error(data.message||'Unable to load exams');
-  document.getElementById('statAvailable').textContent=String(Array.isArray(data.exams)?data.exams.length:0);
+ document.getElementById('examCategoryTitle').textContent=label;
   list.replaceChildren();
-  for(const exam of (data.exams||[])){
+  for(const exam of exams){
    const link=document.createElement('a');link.className='tile';
    const query=new URLSearchParams({access:exam.access_type==='free'?'free':'paid',exam_id:exam.id,type:exam.type||''});
    if(exam.mock)query.set('mock',exam.mock);
@@ -255,8 +285,42 @@ async function loadAvailableExams(){
    const description=document.createElement('span');description.textContent=`${exam.question_count||0} questions • ${exam.duration||0} minutes • ${exam.access_type==='free'?'Start without payment':'Payment approval required'}`;
    link.append(title,description);list.appendChild(link);
   }
-  if(!list.children.length)list.textContent='No exams available yet.';
- }catch(error){list.textContent=error.message;}
+  if(!list.children.length)list.textContent='No exams available in this category yet.';
+}
+async function loadAvailableExams(){
+ const status=document.getElementById('examCatalogStatus');
+ const categories=document.getElementById('examCategories');
+ const panel=document.getElementById('examCategoryPanel');
+ try{
+  const response=await fetch('/api/exams/catalog',{headers:{Authorization:'Bearer '+token},cache:'no-store'});
+  if(response.status===401){goLogin();return;}
+  const data=await response.json();
+  if(!response.ok||!Array.isArray(data.exams))throw new Error(data.message||'Unable to load exams');
+  document.getElementById('statAvailable').textContent=String(data.exams.length);
+  const grouped=new Map(examCategories.map(([label])=>[label,[]]));
+  for(const exam of data.exams){
+   const label=examCategoryFor(exam);
+   if(!grouped.has(label))grouped.set(label,[]);
+   grouped.get(label).push(exam);
+  }
+  for(const [label,exams] of grouped){
+   const button=document.createElement('button');
+   button.type='button';
+   button.textContent=label;
+   button.setAttribute('aria-controls','examCategoryPanel');
+   button.setAttribute('aria-expanded','false');
+   button.addEventListener('click',()=>{
+    const opening=button.getAttribute('aria-expanded')==='false';
+    for(const category of categories.children){
+     category.setAttribute('aria-expanded',String(opening&&category===button));
+    }
+    if(opening)showExamCategory(label,exams);
+    panel.classList.toggle('hidden',!opening);
+   });
+   categories.appendChild(button);
+  }
+  status.hidden=true;
+ }catch(error){status.textContent=error.message;}
 }
 document.getElementById('profileForm').addEventListener('submit',async function(event){
  event.preventDefault();
