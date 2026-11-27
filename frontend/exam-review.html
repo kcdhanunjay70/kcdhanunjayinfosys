@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>Exam Review — KCDHANUNJAY INFOSYS</title>
+ <link rel="stylesheet" href="/access.css">
+ <link rel="stylesheet" href="/exam-review.css">
+ <script src="/exam-review.js" defer></script>
+</head>
+<body class="review-page">
+ <main class="shell">
+  <div class="topbar">
+   <div class="brand">KCDHANUNJAY INFOSYS</div>
+   <a class="nav-link" href="/dashboard.html#my-results">Back to My Results</a>
+  </div>
+  <section class="panel">
+   <h1>Exam Review</h1>
+   <p id="reviewStatus" class="muted" role="status">Loading your review…</p>
+   <div id="reviewContent" hidden>
+    <h2 id="reviewTitle"></h2>
+    <p id="reviewScore"></p>
+    <div class="review-controls">
+     <label>Show questions
+      <select id="reviewFilter">
+       <option value="all">All</option>
+       <option value="correct">Correct</option>
+       <option value="wrong">Wrong</option>
+       <option value="skipped">Skipped</option>
+      </select>
+     </label>
+     <label id="reviewLanguageControl">Question language
+      <select id="reviewLanguage"></select>
+     </label>
+    </div>
+    <p id="reviewSummary" role="status"></p>
+    <div id="reviewQuestions"></div>
+   </div>
+  </section>
+ </main>
+</body>
+</html>

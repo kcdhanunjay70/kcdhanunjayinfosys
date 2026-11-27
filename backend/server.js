@@ -16,6 +16,7 @@ import compression from 'compression';
 import nodemailer from 'nodemailer';
 import {buildResultEmail} from './result-notifications.js';
 import {registerPasswordRecovery} from './password-recovery.js';
+import {buildExamReview,getOwnedExamReview} from './exam-review.js';
 
 const {MONGODB_URI,JWT_SECRET,ADMIN_EMAIL,ADMIN_PASSWORD,PORT=3000}=process.env;
 if(!MONGODB_URI || !JWT_SECRET || JWT_SECRET.length<32) throw Error('Set MONGODB_URI and JWT_SECRET (32+ characters)');
@@ -426,6 +427,7 @@ function normalizeQuestion(b, examId) {
     questionTranslations: Object.fromEntries(['en','te','hi'].filter(k => typeof (b.questionTranslations?.[k] ?? (k === 'en' ? b.question : b['question_' + k])) === 'string' && (b.questionTranslations?.[k] ?? (k === 'en' ? b.question : b['question_' + k])).trim()).map(k => [k, clean(b.questionTranslations?.[k] ?? (k === 'en' ? b.question : b['question_' + k]))])),
     optionTranslations: Object.fromEntries(['en','te','hi'].map(k => [k, b.optionTranslations?.[k] ?? (k === 'en' ? options : ['a','b','c','d'].map(letter => b['option_' + letter + '_' + k]))]).filter(([k,v]) => Array.isArray(v) && v.length === 4 && v.every(x => typeof x === 'string' && x.trim())).map(([k,v]) => [k, v.map(clean)])),
     correct_answer: answer,
+    explanation: typeof b.explanation === 'string' ? b.explanation.trim() : '',
     marks,
     questionImages,
     optionImages,
@@ -583,7 +585,7 @@ app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
  // Every published exam follows its database setting, regardless of URL access=free/sample/paid.
  if(!req.user)return err(res,401,'Registered student login required');
  if(req.user.role!=='admin'&&!isFreeRegisteredExam(exam)&&!await paid(req.user,exam.type,exam.mock))return err(res,403,'Payment approval required',{paymentRequired:true,exam:examPublic(exam)});
- const questions=await c('questions').find({exam_id:exam.id}).sort({created_at:1}).limit(1000).toArray();
+ const questions=await c('questions').find({exam_id:exam.id}).sort({created_at:1,_id:1}).limit(1000).toArray();
  if(!questions.length)return err(res,404,'This exam has no questions');
  res.json({
   success: true,
@@ -620,7 +622,7 @@ app.put('/api/exam/session/:id/answers',auth,asyncRoute(async(req,res)=>{
  if(!updated.modifiedCount){const latest=await c('sessions').findOne({id:s.id,user_id:uid(req.user)});if(!latest||latest.status!=='active'||latest.expires_at<=new Date())return err(res,409,'Session expired or unavailable');return res.json({success:true,stale:true,answerRevision:latest.answer_revision||0});}
  res.json({success:true,answerRevision:revision});
 }));
-app.post('/api/exam/session/:id/finish',auth,asyncRoute(async(req,res)=>{const session=await c('sessions').findOne({id:req.params.id,user_id:uid(req.user)});if(!session)return err(res,404,'Session not found');const result=await c('results').findOne({attempt_id:session.id,user_id:uid(req.user)});if(!result)return err(res,409,'Submit exam results before finishing session');await c('sessions').updateOne({id:session.id,user_id:uid(req.user),status:'active'},{$set:{status:'finished',finished_at:new Date()}});res.json({success:true});}));
+app.post('/api/exam/session/:id/finish',auth,asyncRoute(async(req,res)=>{const session=await c('sessions').findOne({id:req.params.id,user_id:uid(req.user)});if(!session)return err(res,404,'Session not found');const result=await c('results').findOne({attempt_id:session.id,user_id:uid(req.user)},{projection:{_id:1}});if(!result)return err(res,409,'Submit exam results before finishing session');await c('sessions').updateOne({id:session.id,user_id:uid(req.user),status:'active'},{$set:{status:'finished',finished_at:new Date()}});res.json({success:true});}));
 app.post('/api/exam/sample-leads',rate,asyncRoute(async(req,res)=>{const b=req.body||{};if(!clean(b.name)||!validEmail(clean(b.email))||!clean(b.phone))return err(res,400,'Name, email and phone required');await c('sample_leads').insertOne({id:id(),name:clean(b.name),email:clean(b.email),phone:clean(b.phone),exam_type:clean(b.exam_type||b.type),mock:clean(b.mock),sample_year:clean(b.sampleYear),access_mode:clean(b.access_mode),exam_url:clean(b.exam_url),created_at:new Date()});res.json({success:true});}));
 app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
   const b = req.body || {};
@@ -650,11 +652,11 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
     : null;
 
   if (!s) return err(res, 409, 'Active exam session required');
-  const previous = await c('results').findOne({ attempt_id: s.id, user_id: uid(req.user) });
+  const previous = await c('results').findOne({ attempt_id: s.id, user_id: uid(req.user) }, {projection:{review:0}});
   if (previous) {
     const participants = await c('results').countDocuments({ exam_id: exam.id });
     const rank = 1 + await c('results').countDocuments({ exam_id: exam.id, score: { $gt: previous.score } });
-    return res.json({success:true,alreadySubmitted:true,score:previous.score,total:previous.total,percentage:previous.percentage,rank,participants,risk:previous.risk,whatsappAdminUrl:resultWhatsAppUrl(previous,rank,participants),message:'Result already saved'});
+    return res.json({success:true,alreadySubmitted:true,reviewId:previous.reviewAvailable?previous.id:null,score:previous.score,total:previous.total,percentage:previous.percentage,rank,participants,risk:previous.risk,whatsappAdminUrl:resultWhatsAppUrl(previous,rank,participants),message:'Result already saved'});
   }
 
   if (
@@ -664,7 +666,7 @@ app.post('/api/results/submit', optionalAuth, asyncRoute(async (req, res) => {
     return err(res, 409, 'Active exam session required');
   }
 
-  const qs = await c('questions').find({ exam_id: exam.id }).toArray();
+  const qs = await c('questions').find({ exam_id: exam.id }).sort({created_at:1,_id:1}).toArray();
 
   if (!qs.length) return err(res, 409, 'Exam has no questions');
 
@@ -687,6 +689,9 @@ const maximumMarks = qs.reduce(
   0
 );
 
+  const review = buildExamReview(qs.map(q => exam.id === LEGACY_FREE_EXAM_ID
+    ? {...q,...(ARE_TRANSLATIONS[q.question]||{})}
+    : q), answers);
   const result = {
     id: id(),
     attempt_id: s.id,
@@ -698,6 +703,8 @@ const maximumMarks = qs.reduce(
     exam_id: exam.id,
     exam: exam.title,
     exam_key: clean(b.exam_key) || exam.id,
+    reviewAvailable: Boolean(review),
+    ...(review ? { review } : {}),
     score,
     total: maximumMarks,
 	percentage: Number((score / maximumMarks * 100).toFixed(2)),
@@ -713,12 +720,12 @@ const maximumMarks = qs.reduce(
     await c('results').insertOne(result);
   } catch (e) {
     if (e.code !== 11000) throw e;
-    const existing = await c('results').findOne({attempt_id:s.id,user_id:uid(req.user)});
+    const existing = await c('results').findOne({attempt_id:s.id,user_id:uid(req.user)},{projection:{review:0}});
     if (!existing) throw e;
     const participants = await c('results').countDocuments({exam_id:exam.id});
     const rank = 1 + await c('results').countDocuments({exam_id:exam.id,score:{$gt:existing.score}});
     await c('sessions').updateOne({id:s.id,user_id:uid(req.user),status:'active'},{$set:{status:'finished',finished_at:new Date()}});
-    return res.json({success:true,alreadySubmitted:true,score:existing.score,total:existing.total,percentage:existing.percentage,rank,participants,risk:existing.risk,whatsappAdminUrl:resultWhatsAppUrl(existing,rank,participants),message:'Result already saved'});
+    return res.json({success:true,alreadySubmitted:true,reviewId:existing.reviewAvailable?existing.id:null,score:existing.score,total:existing.total,percentage:existing.percentage,rank,participants,risk:existing.risk,whatsappAdminUrl:resultWhatsAppUrl(existing,rank,participants),message:'Result already saved'});
   }
 
   // If finalization fails transiently, the result is still durable and a
@@ -768,6 +775,7 @@ const maximumMarks = qs.reduce(
 
   res.json({
     success: true,
+    reviewId: result.reviewAvailable ? result.id : null,
     score,
     total: maximumMarks,
     percentage: result.percentage,
@@ -779,11 +787,11 @@ const maximumMarks = qs.reduce(
   });
 }));
 
-app.get('/api/results/admin/history',auth,admin,asyncRoute(async(req,res)=>{const rows=await c('results').find().sort({created_at:-1}).limit(100).toArray();const examIds=[...new Set(rows.map(r=>r.exam_id).filter(Boolean))];const scores=examIds.length?await c('results').find({exam_id:{$in:examIds}},{projection:{exam_id:1,score:1}}).toArray():[];const byExam=new Map();for(const r of scores){if(!byExam.has(r.exam_id))byExam.set(r.exam_id,[]);byExam.get(r.exam_id).push(Number(r.score)||0);}res.json({results:rows.map(r=>({studentId:r.studentId,exam:r.exam,score:r.score,percentage:r.percentage,rank:1+(byExam.get(r.exam_id)||[]).filter(score=>score>Number(r.score||0)).length,completedAt:r.created_at}))});}));
+app.get('/api/results/admin/history',auth,admin,asyncRoute(async(req,res)=>{const rows=await c('results').find({},{projection:{review:0}}).sort({created_at:-1}).limit(100).toArray();const examIds=[...new Set(rows.map(r=>r.exam_id).filter(Boolean))];const scores=examIds.length?await c('results').find({exam_id:{$in:examIds}},{projection:{exam_id:1,score:1}}).toArray():[];const byExam=new Map();for(const r of scores){if(!byExam.has(r.exam_id))byExam.set(r.exam_id,[]);byExam.get(r.exam_id).push(Number(r.score)||0);}res.json({results:rows.map(r=>({studentId:r.studentId,exam:r.exam,score:r.score,percentage:r.percentage,rank:1+(byExam.get(r.exam_id)||[]).filter(score=>score>Number(r.score||0)).length,completedAt:r.created_at}))});}));
 // Student-owned result history. Never trust a student ID supplied by the browser.
 app.get('/api/results/my-history',auth,asyncRoute(async(req,res)=>{
   if(req.user.role!=='student')return err(res,403,'Student access required');
-  const rows=await c('results').find({user_id:uid(req.user)}).sort({created_at:-1}).limit(100).toArray();
+  const rows=await c('results').find({user_id:uid(req.user)},{projection:{review:0}}).sort({created_at:-1}).limit(100).toArray();
   const examIds=[...new Set(rows.map(r=>r.exam_id).filter(Boolean))];
   const all=examIds.length?await c('results').find({exam_id:{$in:examIds}},{projection:{exam_id:1,score:1}}).toArray():[];
   const scores=new Map();
@@ -791,8 +799,16 @@ app.get('/api/results/my-history',auth,asyncRoute(async(req,res)=>{
   res.json({success:true,results:rows.map(r=>({
     id:r.id,exam:r.exam,score:r.score,total:r.total,percentage:r.percentage,
     rank:1+(scores.get(r.exam_id)||[]).filter(score=>score>Number(r.score||0)).length,
-    completedAt:r.created_at
+    completedAt:r.created_at,reviewAvailable:r.reviewAvailable===true
   }))});
+}));
+app.get('/api/results/:id/review',auth,asyncRoute(async(req,res)=>{
+  res.set('Cache-Control','no-store');
+  if(req.user.role!=='student')return err(res,403,'Student access required');
+  const result=await getOwnedExamReview(c('results'),req.params.id,uid(req.user));
+  if(!result)return err(res,404,'Result not found');
+  if(!result.review)return err(res,404,'Question review is unavailable for this attempt.');
+  res.json({success:true,result});
 }));
 const fee=()=>{const n=Number(process.env.EXAM_FEE_INR||10);return Number.isFinite(n)&&n>=0?n:10;};
 app.get('/api/payment/config',(req,res)=>res.json({amount:fee(),paymentPhone:process.env.PAYMENT_PHONE||'',upiId:process.env.PAYMENT_UPI_ID||''}));
@@ -895,7 +911,7 @@ app.delete('/api/admin/students/:id',auth,admin,asyncRoute(async(req,res)=>{if(!
 for(const [route,collection,key] of [['sample-leads','sample_leads','leads'],['login-logs','login_logs','logs'],['cheating-alerts','alerts','alerts'],['exam-completions','completions','completions']]){secure(`/api/admin/${route}`,async(req,res)=>res.json({[key]:await c(collection).find().sort({created_at:-1}).limit(200).toArray()}));app.delete(`/api/admin/${route}`,auth,admin,asyncRoute(async(req,res)=>{await c(collection).deleteMany({});res.json({success:true});}));app.delete(`/api/admin/${route}/:id`,auth,admin,asyncRoute(async(req,res)=>{await c(collection).deleteOne({id:req.params.id});res.json({success:true});}));}
 app.delete('/api/admin/dashboard-data',auth,admin,asyncRoute(async(req,res)=>{for(const name of ['login_logs','alerts','completions'])await c(name).deleteMany({});res.json({success:true});}));
 app.post('/api/admin/test-response-mail',auth,admin,(req,res)=>err(res,501,'Email provider is not configured'));
-secure('/api/admin/full-analytics',async(req,res)=>{const filter={};if(req.query.exam_id)filter.exam_id=clean(req.query.exam_id);if(/^\d{4}-\d{2}-\d{2}$/.test(req.query.date||'')){const d=new Date(req.query.date+'T00:00:00Z');filter.created_at={$gte:d,$lt:new Date(d.getTime()+86400000)};}const rows=await c('results').find(filter).sort({created_at:-1}).limit(5000).toArray();const bins=[0,0,0,0,0],counts=new Map();for(const r of rows){bins[Math.min(4,Math.floor(r.percentage/20))]++;counts.set(r.exam,(counts.get(r.exam)||0)+1);}res.json({analytics:{totalAttempts:rows.length},scoreDistribution:bins.map((value,i)=>({range:`${i*20}-${i===4?100:i*20+19}%`,value})),attemptsPerExam:[...counts].map(([exam_name,attempts])=>({exam_name,attempts})),topStudents:[...rows].sort((a,b)=>b.score-a.score).slice(0,10).map(r=>({name:r.name,score:r.score,exam:r.exam})),recentSubmissions:rows.slice(0,20).map(r=>({name:r.name,exam:r.exam,score:r.score,created_at:r.created_at}))});});
+secure('/api/admin/full-analytics',async(req,res)=>{const filter={};if(req.query.exam_id)filter.exam_id=clean(req.query.exam_id);if(/^\d{4}-\d{2}-\d{2}$/.test(req.query.date||'')){const d=new Date(req.query.date+'T00:00:00Z');filter.created_at={$gte:d,$lt:new Date(d.getTime()+86400000)};}const rows=await c('results').find(filter,{projection:{review:0}}).sort({created_at:-1}).limit(5000).toArray();const bins=[0,0,0,0,0],counts=new Map();for(const r of rows){bins[Math.min(4,Math.floor(r.percentage/20))]++;counts.set(r.exam,(counts.get(r.exam)||0)+1);}res.json({analytics:{totalAttempts:rows.length},scoreDistribution:bins.map((value,i)=>({range:`${i*20}-${i===4?100:i*20+19}%`,value})),attemptsPerExam:[...counts].map(([exam_name,attempts])=>({exam_name,attempts})),topStudents:[...rows].sort((a,b)=>b.score-a.score).slice(0,10).map(r=>({name:r.name,score:r.score,exam:r.exam})),recentSubmissions:rows.slice(0,20).map(r=>({name:r.name,exam:r.exam,score:r.score,created_at:r.created_at}))});});
 io.use(async(socket,next)=>{const u=await getUser(socket.handshake.auth?.token||'');if(!u)return next(new Error('Unauthorized'));socket.user=u;next();});
 io.on('connection',socket=>{if(socket.user.role==='admin')socket.join('admins');socket.on('cheating-alert',async payload=>{if(socket.user.role!=='student')return;const alert={id:id(),user_id:uid(socket.user),name:socket.user.name,event_type:clean(payload?.type).slice(0,40),details:{type:clean(payload?.type).slice(0,40)},created_at:new Date()};await c('alerts').insertOne(alert);io.to('admins').emit('cheating-alert',{type:alert.event_type});});});
 app.use('/api',(req,res)=>err(res,404,'API endpoint not found'));

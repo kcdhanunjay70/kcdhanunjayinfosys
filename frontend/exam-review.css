@@ -1,0 +1,15 @@
+.review-page .shell { max-width: 960px; }
+.review-page [hidden] { display: none; }
+.review-controls { display: flex; flex-wrap: wrap; gap: 12px; margin: 18px 0; }
+.review-controls label { display: grid; gap: 5px; }
+.review-controls select { padding: 8px 12px; font: inherit; border-radius: 6px; }
+.review-question { margin: 16px 0; padding: 16px; border: 1px solid #cad5e3; border-radius: 12px; }
+.review-question h3 { margin: 0 0 8px; }
+.review-text, .review-option { white-space: pre-wrap; overflow-wrap: anywhere; }
+.review-options { padding-left: 24px; }
+.review-option { margin: 6px 0; padding: 6px 8px; border-radius: 6px; }
+.review-option[data-correct="true"] { background: #dcfce7; color: #14532d; }
+.review-option[data-selected="true"]:not([data-correct="true"]) { background: #fee2e2; color: #7f1d1d; }
+.review-question img { display: block; max-width: 100%; height: auto; margin: 8px 0; }
+.review-explanation { border-left: 3px solid #0e7490; padding-left: 12px; }
+.review-login { display: block; margin-top: 12px; }

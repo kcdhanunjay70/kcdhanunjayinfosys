@@ -50,6 +50,7 @@
 .portal .nav a:hover{background:#224e6b}
 .portal .tile:hover{border-color:var(--section-accent,#67e8f9)}
 #profileSave,#refreshResults{background:var(--section-accent);color:#172438}
+.results-table a{color:#bae6fd;text-underline-offset:3px}
 </style>
 </head>
 <body>
@@ -85,7 +86,7 @@
  </div>
 </section>
 <section class="section" id="exam-analytics" aria-labelledby="analyticsTitle"><h2 id="analyticsTitle">Exam Performance Analytics</h2><p class="muted">Score progress across your latest 100 exam attempts, oldest to newest.</p><div class="analytics-chart" id="examAnalyticsChart" role="img" aria-label="Exam score progress chart"><p class="analytics-note">Loading exam performance...</p></div><p class="analytics-note" id="analyticsStatus" role="status">Waiting for results...</p></section>
-<section class="section" id="my-results"><h2>My Results & Rankings</h2><p class="muted">Your latest 100 exam submissions, loaded securely from the database.</p><button class="logout" type="button" id="refreshResults">Refresh Results</button><p id="resultsStatus" role="status">Loading your results…</p><div class="results-wrap"><table class="results-table"><thead><tr><th>Exam</th><th>Marks</th><th>Percentage</th><th>Rank</th><th>Completed</th></tr></thead><tbody id="myResultsRows"></tbody></table></div></section>
+<section class="section" id="my-results"><h2>My Results & Rankings</h2><p class="muted">Your latest 100 exam submissions, loaded securely from the database.</p><button class="logout" type="button" id="refreshResults">Refresh Results</button><p id="resultsStatus" role="status">Loading your results…</p><div class="results-wrap"><table class="results-table"><thead><tr><th>Exam</th><th>Marks</th><th>Percentage</th><th>Rank</th><th>Completed</th><th>Review</th></tr></thead><tbody id="myResultsRows"></tbody></table></div></section>
 </main></div>
 <div id="checking" role="status" style="max-width:500px;margin:20vh auto;padding:24px;text-align:center">Checking your student session…</div>
 <script>
@@ -288,7 +289,18 @@ async function loadMyResults(){
   for(const result of results){
    const tr=document.createElement('tr');
    const values=[result.exam||'—',`${result.score??0}/${result.total??'—'}`,`${result.percentage??0}%`,result.rank??'—',result.completedAt?new Date(result.completedAt).toLocaleString():'—'];
-   for(const value of values){const td=document.createElement('td');td.textContent=String(value);tr.appendChild(td);}body.appendChild(tr);
+   for(const value of values){const td=document.createElement('td');td.textContent=String(value);tr.appendChild(td);}
+   const reviewCell=document.createElement('td');
+   if(result.reviewAvailable&&result.id){
+    const link=document.createElement('a');
+    link.href='/exam-review.html?id='+encodeURIComponent(result.id);
+    link.textContent='Review answers';
+    reviewCell.appendChild(link);
+   }else{
+    reviewCell.textContent='Unavailable';
+   }
+   tr.appendChild(reviewCell);
+   body.appendChild(tr);
   }
   status.textContent=results.length?`${results.length} result(s) loaded`:'No exam results found for this account yet.';
  }catch(error){status.textContent=error.message;}

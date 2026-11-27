@@ -1398,6 +1398,13 @@
           } else {
             el("resultBox").innerHTML = resultMarkup;
           }
+          if (data.reviewId) {
+            const reviewLink = document.createElement("a");
+            reviewLink.className = "btn";
+            reviewLink.href = `/exam-review.html?id=${encodeURIComponent(data.reviewId)}`;
+            reviewLink.textContent = "Review My Answers";
+            el("resultBox").append(reviewLink);
+          }
         } else {
           el("resultBox").innerHTML += `<span class="result-line">${escapeHtml(data.message || "Server did not confirm this result. Please retry submission.")}</span>`;
         }
