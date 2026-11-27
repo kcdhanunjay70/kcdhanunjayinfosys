@@ -13,10 +13,35 @@
 </style>
 <style>
 .exam-categories{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,145px),1fr));gap:10px}
-.exam-categories button{padding:11px 10px;border:1px solid #ffffff90;border-radius:10px;background:#07556b;color:#fff;font:inherit;font-weight:700;cursor:pointer}
-.exam-categories button:hover,.exam-categories button[aria-expanded="true"]{background:#fff;color:#07556b}
+.exam-categories button{padding:11px 10px;border:1px solid #ffffff90;border-radius:10px;background:var(--exam-button,#e2e8f0);color:#102038;font:inherit;font-weight:750;cursor:pointer}
+.exam-categories button:nth-child(1){--exam-button:#a5f3fc}
+.exam-categories button:nth-child(2){--exam-button:#99f6c9}
+.exam-categories button:nth-child(3){--exam-button:#fde68a}
+.exam-categories button:nth-child(4){--exam-button:#fbcfe8}
+.exam-categories button:nth-child(5){--exam-button:#c4b5fd}
+.exam-categories button:nth-child(6){--exam-button:#fed7aa}
+.exam-categories button:nth-child(7){--exam-button:#bfdbfe}
+.exam-categories button:hover{box-shadow:inset 0 0 0 2px #10203855}
+.exam-categories button[aria-expanded="true"]{box-shadow:inset 0 0 0 2px #102038}
 .exam-category-panel{margin-top:18px}
 .exam-category-panel h3{margin:0 0 12px}
+.portal .hero{background:linear-gradient(125deg,#113b70,#165a62)}
+.portal .section{background:linear-gradient(125deg,var(--section-start,#143653),var(--section-end,#185660));border-top:3px solid var(--section-accent,#67e8f9)}
+.portal .section h2{color:var(--section-accent,#a5f3fc)}
+#available-exams{--section-start:#24245a;--section-end:#164766;--section-accent:#c4b5fd}
+#my-profile{--section-start:#16483b;--section-end:#205964;--section-accent:#a7f3d0}
+#change-password{--section-start:#54314c;--section-end:#463052;--section-accent:#fbcfe8}
+#exam-analytics{--section-start:#263e73;--section-end:#234a66;--section-accent:#bfdbfe}
+#my-results{--section-start:#543e37;--section-end:#415051;--section-accent:#fde68a}
+.portal .stat-card{background:linear-gradient(135deg,#143653,#19505b)}
+.portal .stat-card:nth-child(1) strong{color:#a5f3fc}
+.portal .stat-card:nth-child(2) strong{color:#a7f3d0}
+.portal .stat-card:nth-child(3) strong{color:#fbcfe8}
+.portal .stat-card:nth-child(4) strong{color:#fde68a}
+.portal .nav a{background:#123d59}
+.portal .nav a:hover{background:#224e6b}
+.portal .tile:hover{border-color:var(--section-accent,#67e8f9)}
+#profileSave,#changePasswordSave,#refreshResults{background:var(--section-accent);color:#172438}
 </style>
 </head>
 <body>
