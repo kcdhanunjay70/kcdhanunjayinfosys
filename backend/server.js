@@ -424,6 +424,8 @@ function normalizeQuestion(b, examId) {
     id: id(),
     exam_id: examId,
     question: clean(b.question),
+    ...(clean(b.topicHeading) && {topicHeading: clean(b.topicHeading)}),
+    ...(clean(b.sectionHeading) && {sectionHeading: clean(b.sectionHeading)}),
     options,
     questionTranslations: Object.fromEntries(['en','te','hi'].filter(k => typeof (b.questionTranslations?.[k] ?? (k === 'en' ? b.question : b['question_' + k])) === 'string' && (b.questionTranslations?.[k] ?? (k === 'en' ? b.question : b['question_' + k])).trim()).map(k => [k, clean(b.questionTranslations?.[k] ?? (k === 'en' ? b.question : b['question_' + k]))])),
     optionTranslations: Object.fromEntries(['en','te','hi'].map(k => [k, b.optionTranslations?.[k] ?? (k === 'en' ? options : ['a','b','c','d'].map(letter => b['option_' + letter + '_' + k]))]).filter(([k,v]) => Array.isArray(v) && v.length === 4 && v.every(x => typeof x === 'string' && x.trim())).map(([k,v]) => [k, v.map(clean)])),
@@ -593,11 +595,13 @@ app.get('/api/exam/get-active',optionalAuth,asyncRoute(async(req,res)=>{
   ...examPublic(exam),
   actualType: exam.type,
   questions: questions.map(({
-    id, question, options, questionTranslations, optionTranslations, questionImages, optionImages, marks
+    id, question, options, questionTranslations, optionTranslations, questionImages, optionImages, topicHeading, sectionHeading, marks
   }) => ({
     id,
     question,
     options,
+    ...(topicHeading && {topicHeading}),
+    ...(sectionHeading && {sectionHeading}),
     questionImages: questionImages || [],
     optionImages: optionImages || [[], [], [], []],
     marks: marks || 1,

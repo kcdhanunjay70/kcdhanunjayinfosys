@@ -4384,6 +4384,7 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
     }
 
     const quickContent = [
+        { label: "AI Tools and Applications", catalogHref: "/dashboard.html?category=ai-tools-and-applications#available-exams" },
         { label: "AP POLYCET", shiftGroups: apPolycetShiftGroups },
         { label: "AP EAPCET", shiftGroups: apEapcetShiftGroups },
         { label: "AP ICET", shiftGroups: apIcetShiftGroups },
@@ -4472,7 +4473,11 @@ function openWhatsAppDoubts(topic = "mock exam practice") {
                     return;
                 }
 
-                const { label, shiftGroups, subsections } = quickContent[index];
+                const { label, shiftGroups, subsections, catalogHref } = quickContent[index];
+                if (catalogHref) {
+                    panel.innerHTML = `<h3>${escapeHtml(label)}</h3><a class="quick-mock-btn" href="${escapeHtml(catalogHref)}">View AI mock exams</a>`;
+                    return;
+                }
                 const links = shiftGroups
                     ? `<div class="quick-shift-list">${shiftGroups.map((group) => `
                         <div class="quick-shift-year">

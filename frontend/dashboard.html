@@ -94,7 +94,14 @@
 'use strict';
 const token=localStorage.getItem('token');
 const checking=document.getElementById('checking');
-function goLogin(){localStorage.removeItem('token');localStorage.removeItem('user');location.replace('/login.html');}
+const aiMockCategory = 'AI Tools and Applications';
+const aiMocksRequested = new URLSearchParams(location.search).get('category') === 'ai-tools-and-applications';
+function goLogin(){
+ localStorage.removeItem('token');
+ localStorage.removeItem('user');
+ const target = '/dashboard.html?category=ai-tools-and-applications#available-exams';
+ location.replace(aiMocksRequested ? '/login.html?redirect='+encodeURIComponent(target) : '/login.html');
+}
 if(!token){goLogin();return;}
 document.getElementById('logout').addEventListener('click',function(){localStorage.removeItem('token');localStorage.removeItem('user');localStorage.removeItem('studentToken');location.replace('/');});
 
@@ -306,6 +313,7 @@ async function loadMyResults(){
  }catch(error){status.textContent=error.message;}
 }
 const examCategories=[
+ [aiMockCategory,/\bai[- ]tools[- ]and[- ]applications\b/],
  ['AP POLYCET',/\b(?:polycet|poly-cet)\b/],
  ['AP EAPCET',/\b(?:eapcet|eamcet|eap-cet)\b/],
  ['AP ICET',/\b(?:icet|i-cet)\b/],
@@ -315,7 +323,9 @@ const examCategories=[
  ['Bank Exams',/\b(?:banks?|banking|ibps|sbi|rbi|nabard)\b/]
 ];
 function examCategoryFor(exam){
- for(const field of [exam.type,exam.subject,exam.title]){
+ const fields = [exam.type,exam.subject,exam.title];
+ if(fields.some(field => examCategories[0][1].test(String(field||'').toLowerCase().replace(/[^a-z0-9]+/g,'-'))))return aiMockCategory;
+ for(const field of fields){
   const key=String(field||'').toLowerCase().replace(/[^a-z0-9]+/g,'-');
   const category=examCategories.find(([,pattern])=>pattern.test(key));
   if(category)return category[0];
@@ -368,6 +378,7 @@ async function loadAvailableExams(){
     panel.classList.toggle('hidden',!opening);
    });
    categories.appendChild(button);
+   if(aiMocksRequested && label===aiMockCategory)button.click();
   }
   status.hidden=true;
  }catch(error){status.textContent=error.message;}
