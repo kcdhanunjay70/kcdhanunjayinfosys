@@ -1,3 +1,4 @@
+import {staticWithWebp} from './static-webp.js';
 import 'dotenv/config';
 import {readFileSync} from 'node:fs';
 import express from 'express';
@@ -915,7 +916,7 @@ secure('/api/admin/full-analytics',async(req,res)=>{const filter={};if(req.query
 io.use(async(socket,next)=>{const u=await getUser(socket.handshake.auth?.token||'');if(!u)return next(new Error('Unauthorized'));socket.user=u;next();});
 io.on('connection',socket=>{if(socket.user.role==='admin')socket.join('admins');socket.on('cheating-alert',async payload=>{if(socket.user.role!=='student')return;const alert={id:id(),user_id:uid(socket.user),name:socket.user.name,event_type:clean(payload?.type).slice(0,40),details:{type:clean(payload?.type).slice(0,40)},created_at:new Date()};await c('alerts').insertOne(alert);io.to('admins').emit('cheating-alert',{type:alert.event_type});});});
 app.use('/api',(req,res)=>err(res,404,'API endpoint not found'));
-const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../frontend');app.use(express.static(root,{index:'index.html',dotfiles:'deny'}));
+const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../frontend');app.use(staticWithWebp(root,{index:'index.html',dotfiles:'deny'}));
 app.get('*',(req,res)=>res.sendFile(path.join(root,'index.html')));
 app.use((e,req,res,next)=>{console.error(e);err(res,e.status|| (e.code==='LIMIT_FILE_SIZE'?413:500),e.status?e.message:'Request failed');});
 http.listen(PORT,'0.0.0.0',()=>console.log(`KCDHANUNJAY frontend + API listening on ${PORT}`));

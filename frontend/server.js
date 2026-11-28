@@ -1,3 +1,4 @@
+import {staticWithWebp} from '../backend/static-webp.js';
 import express from "express";
 import http from "http";
 import https from "https";
@@ -42,7 +43,7 @@ app.use("/api", (req, res) => {
   req.pipe(proxyReq);
 });
 
-app.use(express.static(__dirname));
+app.use(staticWithWebp(__dirname));
 
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "index.html"));
