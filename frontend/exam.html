@@ -1115,8 +1115,8 @@
       let previousTopic;
       let previousSection;
       el("questionList").innerHTML = questions.map((question, index) => {
-        const topic = question.topicHeading;
-        const section = question.sectionHeading;
+        const topic = question.topicHeadingTranslations?.[activeLanguage] || question.topicHeading;
+        const section = question.sectionHeadingTranslations?.[activeLanguage] || question.sectionHeading;
         const topicChanged = topic !== previousTopic;
         const headings = [
           topicChanged && topic ? `<h2 class="exam-topic-heading">${escapeHtml(topic)}</h2>` : "",
